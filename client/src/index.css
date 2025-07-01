@@ -55,11 +55,15 @@ body {
   color: hsl(var(--foreground));
   background: hsl(var(--background));
   font-feature-settings: "rlig" 1, "calt" 1;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  min-width: 1200px;
 }
 
 /* Custom scrollbar */
@@ -97,6 +101,34 @@ html {
 /* Gradient background */
 .gradient-bg {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Fixed Layout Rules */
+.fixed-layout-container {
+  width: 1200px !important;
+  max-width: 1200px !important;
+  min-width: 1200px !important;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Prevent text selection on UI elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Lock textarea resize */
+textarea {
+  resize: none !important;
+}
+
+/* Prevent horizontal scroll on main container */
+#root {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Glass effect */

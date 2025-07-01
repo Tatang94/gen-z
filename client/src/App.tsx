@@ -79,20 +79,20 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Facebook-style Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-full mx-auto px-4">
+        <div className="w-full px-4">
           <div className="flex items-center justify-between h-14">
             {/* Left - Logo and Search */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-shrink-0">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
                   <span className="text-white font-bold text-lg">f</span>
                 </div>
-                <h1 className="text-2xl font-bold text-blue-600 hidden sm:block">GenZ</h1>
+                <h1 className="text-2xl font-bold text-blue-600">GenZ</h1>
               </div>
-              <div className="hidden md:block">
+              <div className="flex-shrink-0">
                 <input
                   type="text"
                   placeholder="Cari di GenZ"
@@ -119,39 +119,41 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="pt-14 flex">
-        {/* Left Sidebar */}
-        <div className="hidden lg:block w-80 fixed left-0 top-14 h-full overflow-y-auto">
-          <Sidebar 
-            currentUser={currentUser} 
-            onAdminClick={() => setCurrentView('admin')}
-          />
-        </div>
-
-        {/* Center Feed */}
-        <main className="flex-1 lg:ml-80 lg:mr-80 max-w-2xl mx-auto px-4 py-6">
-          <div className="space-y-4">
-            <Stories stories={mockStories} />
-            <CreatePost onCreatePost={handleCreatePost} />
-            
-            <div className="space-y-4">
-              {posts.map(post => (
-                <Post
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  onShare={handleShare}
-                  onFollow={handleFollow}
-                />
-              ))}
-            </div>
+      {/* Main Content - Fixed Layout Container */}
+      <div className="pt-14 w-full overflow-hidden">
+        <div className="w-[1200px] mx-auto flex relative fixed-layout-container">
+          {/* Left Sidebar - Fixed Width */}
+          <div className="w-[280px] h-[calc(100vh-56px)] overflow-y-auto bg-white border-r border-gray-200 flex-shrink-0 fixed left-[calc(50%-600px)] top-14">
+            <Sidebar 
+              currentUser={currentUser} 
+              onAdminClick={() => setCurrentView('admin')}
+            />
           </div>
-        </main>
 
-        {/* Right Sidebar */}
-        <div className="hidden lg:block w-80 fixed right-0 top-14 h-full overflow-y-auto">
-          <TrendingPanel />
+          {/* Center Feed - Fixed Width */}
+          <main className="w-[640px] mx-auto px-4 py-6 flex-shrink-0 relative z-10">
+            <div className="space-y-4">
+              <Stories stories={mockStories} />
+              <CreatePost onCreatePost={handleCreatePost} />
+              
+              <div className="space-y-4">
+                {posts.map(post => (
+                  <Post
+                    key={post.id}
+                    post={post}
+                    onLike={handleLike}
+                    onShare={handleShare}
+                    onFollow={handleFollow}
+                  />
+                ))}
+              </div>
+            </div>
+          </main>
+
+          {/* Right Sidebar - Fixed Width */}
+          <div className="w-[280px] h-[calc(100vh-56px)] overflow-y-auto bg-white border-l border-gray-200 flex-shrink-0 fixed right-[calc(50%-600px)] top-14">
+            <TrendingPanel />
+          </div>
         </div>
       </div>
     </div>
