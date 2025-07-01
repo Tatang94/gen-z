@@ -38,58 +38,68 @@ const TrendingPanel: React.FC = () => {
   ];
 
   return (
-    <div className="fixed right-0 top-0 h-full w-80 p-6 overflow-y-auto">
-      {/* Trending Topics */}
-      <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100">
-        <div className="flex items-center mb-4">
-          <TrendingUp className="w-5 h-5 text-purple-500 mr-2" />
-          <h2 className="text-lg font-bold text-gray-900">Trending Hari Ini</h2>
+    <div className="bg-white p-4">
+      {/* Sponsored */}
+      <div className="mb-6">
+        <h3 className="text-gray-500 font-semibold text-sm mb-3">Disponsori</h3>
+        <div className="space-y-3">
+          <div className="flex space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+            <img
+              src="https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=150"
+              alt="Sponsor"
+              className="w-16 h-16 rounded-lg object-cover"
+            />
+            <div>
+              <h4 className="font-medium text-sm text-gray-900">Kursus Web Development</h4>
+              <p className="text-xs text-gray-600">Belajar coding dari nol hingga mahir</p>
+              <span className="text-xs text-gray-500">webdev.id</span>
+            </div>
+          </div>
         </div>
-        <div className="space-y-4">
-          {trendingTopics.map((topic, index) => (
-            <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg cursor-pointer transition-colors">
-              <div className="flex items-center space-x-3">
-                <Hash className="w-4 h-4 text-gray-400" />
-                <div>
-                  <p className="font-semibold text-gray-900">{topic.tag}</p>
-                  <p className="text-xs text-gray-500">{topic.posts} postingan</p>
-                </div>
+      </div>
+
+      <hr className="my-4 border-gray-200" />
+
+      {/* Kontak */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-gray-500 font-semibold text-sm">Kontak</h3>
+          <button className="text-gray-400 hover:text-gray-600">
+            <Users className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {suggestedUsers.map((user) => (
+            <div key={user.id} className="flex items-center space-x-3 p-1 hover:bg-gray-50 rounded-lg cursor-pointer">
+              <div className="relative">
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-9 h-9 rounded-full object-cover"
+                />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
               </div>
+              <span className="font-medium text-sm text-gray-900">{user.name}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Suggested Users */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex items-center mb-4">
-          <Users className="w-5 h-5 text-purple-500 mr-2" />
-          <h2 className="text-lg font-bold text-gray-900">Saran Ikuti</h2>
-        </div>
-        <div className="space-y-4">
-          {suggestedUsers.map((user) => (
-            <div key={user.id} className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div>
-                  <div className="flex items-center space-x-1">
-                    <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-                    {user.isVerified && (
-                      <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500">@{user.username} • {user.followers} pengikut</p>
-                </div>
+      <hr className="my-4 border-gray-200" />
+
+      {/* Grup Percakapan */}
+      <div>
+        <h3 className="text-gray-500 font-semibold text-sm mb-3">Grup Percakapan</h3>
+        <div className="space-y-2">
+          {trendingTopics.slice(0, 3).map((topic, index) => (
+            <div key={index} className="flex items-center space-x-3 p-1 hover:bg-gray-50 rounded-lg cursor-pointer">
+              <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center">
+                <Hash className="w-4 h-4 text-blue-600" />
               </div>
-              <button className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-full hover:shadow-lg transition-all duration-200">
-                Ikuti
-              </button>
+              <div>
+                <p className="font-medium text-sm text-gray-900">{topic.tag.replace('#', '')}</p>
+                <p className="text-xs text-gray-500">{topic.posts} anggota</p>
+              </div>
             </div>
           ))}
         </div>

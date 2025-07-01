@@ -79,19 +79,63 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="flex">
-        <Sidebar 
-          currentUser={currentUser} 
-          onAdminClick={() => setCurrentView('admin')}
-        />
-        
-        <main className="flex-1 max-w-2xl mx-auto px-4 py-6">
-          <div className="animate-fade-in">
+    <div className="min-h-screen bg-gray-100">
+      {/* Facebook-style Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-full mx-auto px-4">
+          <div className="flex items-center justify-between h-14">
+            {/* Left - Logo and Search */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
+                  <span className="text-white font-bold text-lg">f</span>
+                </div>
+                <h1 className="text-2xl font-bold text-blue-600 hidden sm:block">GenZ</h1>
+              </div>
+              <div className="hidden md:block">
+                <input
+                  type="text"
+                  placeholder="Cari di GenZ"
+                  className="w-64 px-4 py-2 bg-gray-100 rounded-full border-none outline-none focus:bg-white focus:shadow-md transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Right - User Profile */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setCurrentView('admin')}
+                className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                <span className="text-sm font-medium">Admin</span>
+              </button>
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.displayName}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="pt-14 flex">
+        {/* Left Sidebar */}
+        <div className="hidden lg:block w-80 fixed left-0 top-14 h-full overflow-y-auto">
+          <Sidebar 
+            currentUser={currentUser} 
+            onAdminClick={() => setCurrentView('admin')}
+          />
+        </div>
+
+        {/* Center Feed */}
+        <main className="flex-1 lg:ml-80 lg:mr-80 max-w-2xl mx-auto px-4 py-6">
+          <div className="space-y-4">
             <Stories stories={mockStories} />
             <CreatePost onCreatePost={handleCreatePost} />
             
-            <div className="space-y-6">
+            <div className="space-y-4">
               {posts.map(post => (
                 <Post
                   key={post.id}
@@ -105,7 +149,10 @@ function App() {
           </div>
         </main>
 
-        <TrendingPanel />
+        {/* Right Sidebar */}
+        <div className="hidden lg:block w-80 fixed right-0 top-14 h-full overflow-y-auto">
+          <TrendingPanel />
+        </div>
       </div>
     </div>
   );

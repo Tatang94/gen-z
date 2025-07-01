@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, Bell, Mail, Bookmark, User, Settings, Shield, Zap } from 'lucide-react';
+import { Home, Search, Bell, Mail, Bookmark, User, Settings, Shield, Zap, Users } from 'lucide-react';
 import { User as UserType } from '../types';
 
 interface SidebarProps {
@@ -9,72 +9,79 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentUser, onAdminClick }) => {
   const menuItems = [
-    { icon: Home, label: 'Beranda', active: true },
-    { icon: Search, label: 'Jelajahi', active: false },
-    { icon: Bell, label: 'Notifikasi', active: false },
-    { icon: Mail, label: 'Pesan', active: false },
+    { icon: User, label: currentUser.displayName, active: false, avatar: currentUser.avatar },
+    { icon: Users, label: 'Teman', active: false },
     { icon: Bookmark, label: 'Tersimpan', active: false },
-    { icon: User, label: 'Profil', active: false },
-    { icon: Settings, label: 'Pengaturan', active: false },
+    { icon: Bell, label: 'Grup', active: false },
+    { icon: Home, label: 'Marketplace', active: false },
+    { icon: Search, label: 'Watch', active: false },
+    { icon: Mail, label: 'Messenger', active: false },
+    { icon: Settings, label: 'Lihat Selengkapnya', active: false },
+  ];
+
+  const shortcuts = [
+    { name: 'React Indonesia', avatar: 'https://images.pexels.com/photos/1181298/pexels-photo-1181298.jpeg?auto=compress&cs=tinysrgb&w=150' },
+    { name: 'JavaScript Community', avatar: 'https://images.pexels.com/photos/1181304/pexels-photo-1181304.jpeg?auto=compress&cs=tinysrgb&w=150' },
+    { name: 'Web Developers', avatar: 'https://images.pexels.com/photos/1181311/pexels-photo-1181311.jpeg?auto=compress&cs=tinysrgb&w=150' },
   ];
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 p-6 overflow-y-auto">
-      {/* Logo */}
-      <div className="flex items-center mb-8">
-        <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
-          <Zap className="w-5 h-5 text-white" />
-        </div>
-        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          GEN-Z
-        </h1>
-      </div>
-
+    <div className="bg-white p-4">
       {/* Navigation Menu */}
-      <nav className="space-y-2 mb-8">
+      <nav className="space-y-1">
         {menuItems.map((item, index) => (
           <button
             key={index}
-            className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
-              item.active
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className="w-full flex items-center px-2 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
           >
-            <item.icon className="w-5 h-5 mr-3" />
-            <span className="font-medium">{item.label}</span>
+            {item.avatar ? (
+              <img src={item.avatar} alt={item.label} className="w-9 h-9 rounded-full object-cover mr-3" />
+            ) : (
+              <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                <item.icon className="w-5 h-5 text-gray-600" />
+              </div>
+            )}
+            <span className="font-medium text-sm">{item.label}</span>
           </button>
         ))}
       </nav>
 
-      {/* Admin Panel Button */}
-      <button
-        onClick={onAdminClick}
-        className="w-full flex items-center px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 mb-6"
-      >
-        <Shield className="w-5 h-5 mr-3" />
-        <span className="font-medium">Panel Admin</span>
-      </button>
+      {/* Divider */}
+      <hr className="my-4 border-gray-200" />
 
-      {/* User Profile */}
-      <div className="border-t border-gray-200 pt-6">
-        <div className="flex items-center">
-          <img
-            src={currentUser.avatar}
-            alt={currentUser.displayName}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <div className="ml-3 flex-1">
-            <p className="font-semibold text-gray-900 text-sm">{currentUser.displayName}</p>
-            <p className="text-gray-500 text-xs">@{currentUser.username}</p>
-          </div>
-          {currentUser.isVerified && (
-            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">✓</span>
-            </div>
-          )}
+      {/* Shortcuts */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-gray-500 font-semibold text-sm">Pintasan Anda</h3>
+        </div>
+        <div className="space-y-1">
+          {shortcuts.map((shortcut, index) => (
+            <button
+              key={index}
+              className="w-full flex items-center px-2 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+            >
+              <img
+                src={shortcut.avatar}
+                alt={shortcut.name}
+                className="w-9 h-9 rounded-lg object-cover mr-3"
+              />
+              <span className="font-medium text-sm">{shortcut.name}</span>
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Admin Panel Button */}
+      <hr className="my-4 border-gray-200" />
+      <button
+        onClick={onAdminClick}
+        className="w-full flex items-center px-2 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+      >
+        <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+          <Shield className="w-5 h-5 text-blue-600" />
+        </div>
+        <span className="font-medium text-sm">Panel Admin</span>
+      </button>
     </div>
   );
 };
