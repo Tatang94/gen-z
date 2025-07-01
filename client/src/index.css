@@ -63,7 +63,6 @@ body {
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  min-width: 1200px;
 }
 
 /* Custom scrollbar */
@@ -103,13 +102,11 @@ html {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Fixed Layout Rules */
-.fixed-layout-container {
-  width: 1200px !important;
-  max-width: 1200px !important;
-  min-width: 1200px !important;
+/* Mobile-First Layout Rules */
+.mobile-container {
+  max-width: 100%;
   margin: 0 auto;
-  overflow: hidden;
+  padding: 0 1rem;
 }
 
 /* Prevent text selection on UI elements */

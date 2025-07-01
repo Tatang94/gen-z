@@ -8,21 +8,21 @@ interface StoriesProps {
 
 const Stories: React.FC<StoriesProps> = ({ stories }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-      <div className="flex space-x-3 overflow-x-auto">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-4">
+      <div className="flex space-x-2 overflow-x-auto pb-1">
         {/* Add Story */}
         <div className="flex-shrink-0 text-center">
-          <div className="relative w-20 h-28 bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+          <div className="relative w-16 h-24 bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
             <img
               src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150"
               alt="Your story"
-              className="w-full h-20 object-cover"
+              className="w-full h-16 object-cover"
             />
-            <div className="absolute top-16 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center border-4 border-white">
-              <Plus className="w-4 h-4 text-white" />
+            <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white">
+              <Plus className="w-3 h-3 text-white" />
             </div>
-            <div className="p-2">
-              <p className="text-xs text-gray-900 font-medium">Buat cerita</p>
+            <div className="p-1">
+              <p className="text-[10px] text-gray-900 font-medium">Buat</p>
             </div>
           </div>
         </div>
@@ -30,13 +30,13 @@ const Stories: React.FC<StoriesProps> = ({ stories }) => {
         {/* Stories */}
         {stories.map((story) => (
           <div key={story.id} className="flex-shrink-0 text-center cursor-pointer">
-            <div className="relative w-20 h-28 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+            <div className="relative w-16 h-24 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
               <img
                 src={story.image}
                 alt={story.user.displayName}
                 className="w-full h-full object-cover"
               />
-              <div className={`absolute top-2 left-2 w-8 h-8 rounded-full p-0.5 ${
+              <div className={`absolute top-1 left-1 w-6 h-6 rounded-full p-0.5 ${
                 story.isViewed 
                   ? 'bg-gray-300' 
                   : 'bg-blue-600'
@@ -44,12 +44,12 @@ const Stories: React.FC<StoriesProps> = ({ stories }) => {
                 <img
                   src={story.user.avatar}
                   alt={story.user.displayName}
-                  className="w-full h-full rounded-full object-cover border-2 border-white"
+                  className="w-full h-full rounded-full object-cover border border-white"
                 />
               </div>
-              <div className="absolute bottom-2 left-2 right-2">
-                <p className="text-xs text-white font-medium truncate drop-shadow-lg">
-                  {story.user.displayName}
+              <div className="absolute bottom-1 left-1 right-1">
+                <p className="text-[10px] text-white font-medium truncate drop-shadow-lg">
+                  {story.user.displayName.split(' ')[0]}
                 </p>
               </div>
             </div>

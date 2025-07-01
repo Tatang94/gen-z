@@ -14,22 +14,22 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
   const [showComments, setShowComments] = useState(false);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
       {/* Post Header */}
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <img
               src={post.user.avatar}
               alt={post.user.displayName}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-8 h-8 rounded-full object-cover"
             />
             <div>
               <div className="flex items-center space-x-1">
                 <h3 className="font-semibold text-gray-900 text-sm">{post.user.displayName}</h3>
                 {post.user.isVerified && (
-                  <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">✓</span>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-[10px]">✓</span>
                   </div>
                 )}
               </div>
@@ -37,12 +37,12 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
             </div>
           </div>
           <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-            <MoreHorizontal className="w-5 h-5 text-gray-500" />
+            <MoreHorizontal className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
         {/* Post Content */}
-        <div className="mt-3">
+        <div className="mt-2">
           <p className="text-gray-900 text-sm leading-relaxed">{post.content}</p>
         </div>
       </div>
@@ -59,13 +59,13 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
       )}
 
       {/* Post Stats */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between text-gray-500 text-sm">
+      <div className="px-3 py-2">
+        <div className="flex items-center justify-between text-gray-500 text-xs">
           <div className="flex items-center space-x-1">
-            <ThumbsUp className="w-4 h-4 text-blue-500" />
+            <ThumbsUp className="w-3 h-3 text-blue-500" />
             <span>{post.likes}</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <span>{post.comments.length} komentar</span>
             <span>{post.shares} bagian</span>
           </div>
@@ -73,34 +73,34 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
       </div>
 
       {/* Post Actions */}
-      <div className="px-4 py-2 border-t border-gray-200">
-        <div className="flex items-center justify-between">
+      <div className="px-3 py-1 border-t border-gray-200">
+        <div className="flex items-center">
           <button
             onClick={() => onLike(post.id)}
-            className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg transition-colors ${
-              post.isLiked ? 'text-blue-500 bg-blue-50' : 'text-gray-500 hover:bg-gray-100'
+            className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
+              post.isLiked ? 'text-blue-500' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
-            <ThumbsUp className={`w-5 h-5 ${post.isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm font-medium">Suka</span>
+            <ThumbsUp className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
+            <span className="text-xs font-medium">Suka</span>
           </button>
           
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
           >
-            <MessageCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">Komentar</span>
+            <MessageCircle className="w-4 h-4" />
+            <span className="text-xs font-medium">Komentar</span>
           </button>
           
           <button
             onClick={() => onShare(post.id)}
-            className={`flex-1 flex items-center justify-center space-x-2 py-2 rounded-lg transition-colors ${
-              post.isShared ? 'text-green-500 bg-green-50' : 'text-gray-500 hover:bg-gray-100'
+            className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
+              post.isShared ? 'text-green-500' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
-            <Share2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Bagikan</span>
+            <Share2 className="w-4 h-4" />
+            <span className="text-xs font-medium">Bagikan</span>
           </button>
         </div>
       </div>
