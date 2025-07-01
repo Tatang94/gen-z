@@ -15,10 +15,10 @@ This is a full-stack social media application built with React, Express, and Typ
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
-- **Database**: PostgreSQL with Neon serverless (configurable)
+- **Database**: PostgreSQL with Neon serverless
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Storage**: Dual storage system (in-memory for development, PostgreSQL for production)
-- **API**: RESTful API with `/api` prefix
+- **Storage**: PostgreSQL database with full CRUD operations
+- **API**: RESTful API with `/api` prefix for posts, comments, stories
 
 ### Development Setup
 - **Monorepo Structure**: Client, server, and shared code in single repository
@@ -114,6 +114,14 @@ This is a full-stack social media application built with React, Express, and Typ
 ```
 Changelog:
 - July 01, 2025. Initial setup
+- July 01, 2025. Added PostgreSQL database integration with full schema:
+  - Users table with profile information
+  - Posts table with content and media support
+  - Comments table with nested relationships
+  - Stories table for story features
+  - Implemented DatabaseStorage class replacing MemStorage
+  - Added API endpoints for CRUD operations
+  - Populated database with sample data
 ```
 
 ## User Preferences
