@@ -71,15 +71,15 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <AdminDashboard 
           onBackToHome={() => setCurrentView('home')}
-          users={users}
-          posts={posts}
+          users={users as any}
+          posts={posts as any}
         />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="flex">
         <Sidebar 
           currentUser={currentUser} 
@@ -87,19 +87,21 @@ function App() {
         />
         
         <main className="flex-1 max-w-2xl mx-auto px-4 py-6">
-          <Stories stories={mockStories} />
-          <CreatePost onCreatePost={handleCreatePost} />
-          
-          <div className="space-y-6">
-            {posts.map(post => (
-              <Post
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                onShare={handleShare}
-                onFollow={handleFollow}
-              />
-            ))}
+          <div className="animate-fade-in">
+            <Stories stories={mockStories} />
+            <CreatePost onCreatePost={handleCreatePost} />
+            
+            <div className="space-y-6">
+              {posts.map(post => (
+                <Post
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onShare={handleShare}
+                  onFollow={handleFollow}
+                />
+              ))}
+            </div>
           </div>
         </main>
 

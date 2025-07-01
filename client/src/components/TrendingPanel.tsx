@@ -1,40 +1,59 @@
 import React from 'react';
-import { TrendingUp, Hash, Users } from 'lucide-react';
+import { TrendingUp, Users, Hash } from 'lucide-react';
 
 const TrendingPanel: React.FC = () => {
   const trendingTopics = [
-    { tag: '#ReactJS', posts: '125K posts' },
-    { tag: '#WebDevelopment', posts: '89K posts' },
-    { tag: '#JavaScript', posts: '234K posts' },
-    { tag: '#TailwindCSS', posts: '67K posts' },
-    { tag: '#OpenSource', posts: '156K posts' }
+    { tag: '#GenZ', posts: '12.5K' },
+    { tag: '#TechTrends', posts: '8.2K' },
+    { tag: '#Indonesia', posts: '15.3K' },
+    { tag: '#SocialMedia', posts: '6.7K' },
+    { tag: '#Viral', posts: '25.1K' },
   ];
 
   const suggestedUsers = [
-    { name: 'Sarah Chen', handle: '@sarahdev', followers: '12.5K' },
-    { name: 'Alex Rodriguez', handle: '@alexcodes', followers: '8.9K' },
-    { name: 'Maya Patel', handle: '@mayatech', followers: '15.2K' }
+    {
+      id: '1',
+      name: 'Andi Pratama',
+      username: 'andipratama',
+      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150',
+      followers: '1.2K',
+      isVerified: true,
+    },
+    {
+      id: '2',
+      name: 'Sari Dewi',
+      username: 'saridewi',
+      avatar: 'https://images.pexels.com/photos/1542085/pexels-photo-1542085.jpeg?auto=compress&cs=tinysrgb&w=150',
+      followers: '856',
+      isVerified: false,
+    },
+    {
+      id: '3',
+      name: 'Budi Santoso',
+      username: 'budisantoso',
+      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150',
+      followers: '2.1K',
+      isVerified: true,
+    },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="fixed right-0 top-0 h-full w-80 p-6 overflow-y-auto">
       {/* Trending Topics */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Trending Topics</h3>
-          </div>
+      <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100">
+        <div className="flex items-center mb-4">
+          <TrendingUp className="w-5 h-5 text-purple-500 mr-2" />
+          <h2 className="text-lg font-bold text-gray-900">Trending Hari Ini</h2>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="space-y-4">
           {trendingTopics.map((topic, index) => (
-            <div key={index} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-gray-400" />
-                  <span className="font-medium text-gray-900">{topic.tag}</span>
+            <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg cursor-pointer transition-colors">
+              <div className="flex items-center space-x-3">
+                <Hash className="w-4 h-4 text-gray-400" />
+                <div>
+                  <p className="font-semibold text-gray-900">{topic.tag}</p>
+                  <p className="text-xs text-gray-500">{topic.posts} postingan</p>
                 </div>
-                <span className="text-sm text-gray-500">{topic.posts}</span>
               </div>
             </div>
           ))}
@@ -42,33 +61,35 @@ const TrendingPanel: React.FC = () => {
       </div>
 
       {/* Suggested Users */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
-            <h3 className="font-semibold text-gray-900">Who to Follow</h3>
-          </div>
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="flex items-center mb-4">
+          <Users className="w-5 h-5 text-purple-500 mr-2" />
+          <h2 className="text-lg font-bold text-gray-900">Saran Ikuti</h2>
         </div>
-        <div className="divide-y divide-gray-50">
-          {suggestedUsers.map((user, index) => (
-            <div key={index} className="p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm">
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+        <div className="space-y-4">
+          {suggestedUsers.map((user) => (
+            <div key={user.id} className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div>
+                  <div className="flex items-center space-x-1">
+                    <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
+                    {user.isVerified && (
+                      <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.handle}</p>
-                  </div>
+                  <p className="text-xs text-gray-500">@{user.username} • {user.followers} pengikut</p>
                 </div>
-                <button className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-full hover:bg-blue-700 transition-colors">
-                  Follow
-                </button>
               </div>
-              <p className="text-sm text-gray-500 mt-2">{user.followers} followers</p>
+              <button className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-full hover:shadow-lg transition-all duration-200">
+                Ikuti
+              </button>
             </div>
           ))}
         </div>

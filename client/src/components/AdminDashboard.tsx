@@ -1,25 +1,6 @@
 import React from 'react';
 import { Users, FileText, ArrowLeft, Trash2, Eye } from 'lucide-react';
-
-interface User {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  email?: string;
-  joinDate?: string;
-}
-
-interface Post {
-  id: string;
-  user: User;
-  content: string;
-  image?: string;
-  timestamp: string;
-  likes: number;
-  comments: number;
-  shares: number;
-}
+import { User, Post } from '../types';
 
 interface AdminDashboardProps {
   onBackToHome: () => void;
@@ -29,7 +10,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, posts }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,150 +21,166 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span>Back to Home</span>
+                <span>Kembali ke Beranda</span>
               </button>
               <div className="h-6 w-px bg-gray-300" />
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard Admin</h1>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
+              <Users className="w-8 h-8 text-blue-500" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Users</p>
-                <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
+                <p className="text-sm font-medium text-gray-600">Total Pengguna</p>
+                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <FileText className="h-8 w-8 text-green-600" />
-              </div>
+              <FileText className="w-8 h-8 text-green-500" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Posts</p>
-                <p className="text-2xl font-semibold text-gray-900">{posts.length}</p>
+                <p className="text-sm font-medium text-gray-600">Total Postingan</p>
+                <p className="text-2xl font-bold text-gray-900">{posts.length}</p>
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Eye className="h-8 w-8 text-purple-600" />
-              </div>
+              <Eye className="w-8 h-8 text-purple-500" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Total Views</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {posts.reduce((sum, post) => sum + post.likes + post.comments, 0)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <Users className="h-8 w-8 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Active Users</p>
-                <p className="text-2xl font-semibold text-gray-900">{Math.floor(users.length * 0.7)}</p>
+                <p className="text-sm font-medium text-gray-600">Pengguna Aktif</p>
+                <p className="text-2xl font-bold text-gray-900">{users.filter(u => u.isOnline).length}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Users Management */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">User Management</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {users.slice(0, 10).map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-500">@{user.username}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {users.length > 10 && (
-                <div className="mt-4 text-center">
-                  <button className="text-blue-600 hover:text-blue-700 font-medium">
-                    View All Users ({users.length})
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow-sm mb-8 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Manajemen Pengguna</h2>
           </div>
-
-          {/* Posts Management */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Posts</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                {posts.slice(0, 5).map((post) => (
-                  <div key={post.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <img
-                          src={post.user.avatar}
-                          alt={post.user.name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">{post.user.name}</p>
-                          <p className="text-xs text-gray-500">{post.timestamp}</p>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pengguna
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Username
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Bergabung
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.slice(0, 10).map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <img className="h-10 w-10 rounded-full" src={user.avatar} alt="" />
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{user.displayName}</div>
                         </div>
                       </div>
-                      <button className="p-1 text-gray-400 hover:text-red-600 transition-colors">
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      @{user.username}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {user.isOnline ? 'Online' : 'Offline'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(user.joinDate).toLocaleDateString('id-ID')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-red-600 hover:text-red-900 mr-4">
                         <Trash2 className="w-4 h-4" />
                       </button>
-                    </div>
-                    <p className="text-sm text-gray-700 line-clamp-2">{post.content}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>{post.likes} likes</span>
-                      <span>{post.comments} comments</span>
-                      <span>{post.shares} shares</span>
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-              {posts.length > 5 && (
-                <div className="mt-4 text-center">
-                  <button className="text-blue-600 hover:text-blue-700 font-medium">
-                    View All Posts ({posts.length})
-                  </button>
-                </div>
-              )}
-            </div>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Posts Table */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Postingan Terbaru</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Pengguna
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Konten
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Likes
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Waktu
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {posts.slice(0, 10).map((post) => (
+                  <tr key={post.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <img className="h-8 w-8 rounded-full" src={post.user.avatar} alt="" />
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">{post.user.displayName}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900 max-w-xs truncate">{post.content}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {post.likes}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(post.timestamp).toLocaleDateString('id-ID')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-red-600 hover:text-red-900">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

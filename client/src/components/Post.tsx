@@ -14,7 +14,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
   const [showComments, setShowComments] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow animate-fade-in">
       {/* Post Header */}
       <div className="p-6 pb-4">
         <div className="flex items-center justify-between">
@@ -22,13 +22,13 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
             <img
               src={post.user.avatar}
               alt={post.user.displayName}
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-purple-100"
             />
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className="font-semibold text-gray-900">{post.user.displayName}</h3>
                 {post.user.isVerified && (
-                  <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs">✓</span>
                   </div>
                 )}
@@ -39,7 +39,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => onFollow(post.user.id)}
-              className="flex items-center space-x-1 px-3 py-1.5 bg-purple-100 text-purple-600 rounded-full text-sm font-medium hover:bg-purple-200 transition-colors"
+              className="flex items-center space-x-1 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-600 rounded-full text-sm font-medium hover:from-purple-200 hover:to-pink-200 transition-all duration-200"
             >
               <UserPlus className="w-4 h-4" />
               <span>Ikuti</span>
