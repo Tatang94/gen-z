@@ -77,12 +77,7 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Right - User Profile */}
-            <div className="flex items-center space-x-3">
-              <Link href="/admin">
-                <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                  <span className="text-sm font-medium">Admin</span>
-                </button>
-              </Link>
+            <div className="flex items-center">
               <img
                 src={currentUser.avatar}
                 alt={currentUser.displayName}
