@@ -45,42 +45,156 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
 
   // Search Spotify tracks
   const searchSpotify = async (query: string) => {
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setSpotifyResults([]);
+      return;
+    }
     
     setIsSearching(true);
     try {
-      // Mock Spotify API response untuk demo
+      // Simulasi delay untuk meniru API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Mock Spotify API response dengan lebih banyak lagu
       const mockResults: SpotifyTrack[] = [
         {
           id: '1',
           name: 'Blinding Lights',
           artist: 'The Weeknd',
           album: 'After Hours',
-          preview_url: 'https://p.scdn.co/mp3-preview/...',
-          external_urls: { spotify: 'https://open.spotify.com/track/...' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273...'
+          preview_url: 'https://p.scdn.co/mp3-preview/1',
+          external_urls: { spotify: 'https://open.spotify.com/track/1' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273aaa'
         },
         {
           id: '2',
           name: 'Shape of You',
           artist: 'Ed Sheeran',
           album: '÷ (Deluxe)',
-          preview_url: 'https://p.scdn.co/mp3-preview/...',
-          external_urls: { spotify: 'https://open.spotify.com/track/...' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273...'
+          preview_url: 'https://p.scdn.co/mp3-preview/2',
+          external_urls: { spotify: 'https://open.spotify.com/track/2' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273bbb'
         },
         {
           id: '3',
           name: 'Someone Like You',
           artist: 'Adele',
           album: '21',
-          preview_url: 'https://p.scdn.co/mp3-preview/...',
-          external_urls: { spotify: 'https://open.spotify.com/track/...' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273...'
+          preview_url: 'https://p.scdn.co/mp3-preview/3',
+          external_urls: { spotify: 'https://open.spotify.com/track/3' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273ccc'
+        },
+        {
+          id: '4',
+          name: 'Watermelon Sugar',
+          artist: 'Harry Styles',
+          album: 'Fine Line',
+          preview_url: 'https://p.scdn.co/mp3-preview/4',
+          external_urls: { spotify: 'https://open.spotify.com/track/4' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273ddd'
+        },
+        {
+          id: '5',
+          name: 'Levitating',
+          artist: 'Dua Lipa',
+          album: 'Future Nostalgia',
+          preview_url: 'https://p.scdn.co/mp3-preview/5',
+          external_urls: { spotify: 'https://open.spotify.com/track/5' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273eee'
+        },
+        {
+          id: '6',
+          name: 'As It Was',
+          artist: 'Harry Styles',
+          album: 'Harry\'s House',
+          preview_url: 'https://p.scdn.co/mp3-preview/6',
+          external_urls: { spotify: 'https://open.spotify.com/track/6' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273fff'
+        },
+        {
+          id: '7',
+          name: 'Anti-Hero',
+          artist: 'Taylor Swift',
+          album: 'Midnights',
+          preview_url: 'https://p.scdn.co/mp3-preview/7',
+          external_urls: { spotify: 'https://open.spotify.com/track/7' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273ggg'
+        },
+        {
+          id: '8',
+          name: 'Bad Habit',
+          artist: 'Steve Lacy',
+          album: 'Gemini Rights',
+          preview_url: 'https://p.scdn.co/mp3-preview/8',
+          external_urls: { spotify: 'https://open.spotify.com/track/8' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273hhh'
+        },
+        {
+          id: '9',
+          name: 'Heat Waves',
+          artist: 'Glass Animals',
+          album: 'Dreamland',
+          preview_url: 'https://p.scdn.co/mp3-preview/9',
+          external_urls: { spotify: 'https://open.spotify.com/track/9' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273iii'
+        },
+        {
+          id: '10',
+          name: 'Stay',
+          artist: 'The Kid LAROI & Justin Bieber',
+          album: 'F*CK LOVE 3: OVER YOU',
+          preview_url: 'https://p.scdn.co/mp3-preview/10',
+          external_urls: { spotify: 'https://open.spotify.com/track/10' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273jjj'
+        },
+        {
+          id: '11',
+          name: 'Diam Diam',
+          artist: 'Arsy Widianto & Tiara Andini',
+          album: 'Diam Diam - Single',
+          preview_url: 'https://p.scdn.co/mp3-preview/11',
+          external_urls: { spotify: 'https://open.spotify.com/track/11' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273kkk'
+        },
+        {
+          id: '12',
+          name: 'Tak Ingin Usai',
+          artist: 'Keisya Levronka',
+          album: 'Tak Ingin Usai - Single',
+          preview_url: 'https://p.scdn.co/mp3-preview/12',
+          external_urls: { spotify: 'https://open.spotify.com/track/12' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273lll'
+        },
+        {
+          id: '13',
+          name: 'Runtuh',
+          artist: 'Feby Putri & Fiersa Besari',
+          album: 'Runtuh - Single',
+          preview_url: 'https://p.scdn.co/mp3-preview/13',
+          external_urls: { spotify: 'https://open.spotify.com/track/13' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273mmm'
+        },
+        {
+          id: '14',
+          name: 'Menghapus Jejakmu',
+          artist: 'Peterpan',
+          album: 'Hari Yang Cerah',
+          preview_url: 'https://p.scdn.co/mp3-preview/14',
+          external_urls: { spotify: 'https://open.spotify.com/track/14' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273nnn'
+        },
+        {
+          id: '15',
+          name: 'Mungkin Hari Ini Esok Atau Nanti',
+          artist: 'Anneth',
+          album: 'Mungkin Hari Ini Esok Atau Nanti - Single',
+          preview_url: 'https://p.scdn.co/mp3-preview/15',
+          external_urls: { spotify: 'https://open.spotify.com/track/15' },
+          image: 'https://i.scdn.co/image/ab67616d0000b273ooo'
         }
       ];
       
-      // Filter berdasarkan query
+      // Filter berdasarkan query dengan pencarian yang lebih fleksibel
       const filtered = mockResults.filter(track => 
         track.name.toLowerCase().includes(query.toLowerCase()) ||
         track.artist.toLowerCase().includes(query.toLowerCase()) ||
@@ -376,7 +490,13 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
             </div>
             
             <div className="max-h-96 overflow-y-auto p-4">
-              {spotifyResults.length > 0 ? (
+              {isSearching ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <p>Mencari musik...</p>
+                  <p className="text-sm">Harap tunggu sebentar</p>
+                </div>
+              ) : spotifyResults.length > 0 ? (
                 <div className="space-y-2">
                   {spotifyResults.map((track) => (
                     <button
