@@ -165,6 +165,7 @@ const HomePage: React.FC = () => {
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('Profile clicked!', showProfileMenu);
     setShowProfileMenu(!showProfileMenu);
   };
 
@@ -195,16 +196,20 @@ const HomePage: React.FC = () => {
 
             {/* Right - User Profile */}
             <div className="relative">
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.displayName}
-                className="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+              <button
                 onClick={handleProfileClick}
-              />
+                className="p-0 border-0 bg-transparent cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.displayName}
+                  className="w-8 h-8 rounded-full object-cover border-2 border-transparent hover:border-blue-500 transition-all"
+                />
+              </button>
               
               {/* Profile Dropdown Menu */}
               {showProfileMenu && (
-                <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-[9999]">
                   <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                     <p className="font-semibold text-gray-900 dark:text-gray-100">{currentUser.displayName}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">@{currentUser.username}</p>
