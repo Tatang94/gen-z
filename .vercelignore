@@ -1,0 +1,13 @@
+node_modules
+.git
+.replit
+*.log
+.env
+.env.local
+.env.production.local
+.env.development.local
+dist
+uploads/*.png
+uploads/*.jpg
+uploads/*.jpeg
+database.sqlite
