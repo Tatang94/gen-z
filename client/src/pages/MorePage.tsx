@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 import SettingsModal from '../components/SettingsModal';
+import HelpCenter from '../components/HelpCenter';
+import AccountManager from '../components/AccountManager';
 import { 
   Settings, 
   Moon, 
@@ -29,6 +31,8 @@ export default function MorePage() {
   const [showModal, setShowModal] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [showAccountManager, setShowAccountManager] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -37,7 +41,7 @@ export default function MorePage() {
   };
 
   const handleEditProfile = () => {
-    setLocation('/profile');
+    setShowAccountManager(true);
   };
 
   const handleYourActivity = () => {
@@ -74,7 +78,7 @@ export default function MorePage() {
   };
 
   const handleHelp = () => {
-    setShowModal('help');
+    setShowHelpCenter(true);
   };
 
   const handleAbout = () => {
@@ -409,6 +413,18 @@ export default function MorePage() {
       <SettingsModal 
         isOpen={showSettings} 
         onClose={() => setShowSettings(false)} 
+      />
+
+      {/* Help Center */}
+      <HelpCenter
+        isOpen={showHelpCenter}
+        onClose={() => setShowHelpCenter(false)}
+      />
+
+      {/* Account Manager */}
+      <AccountManager
+        isOpen={showAccountManager}
+        onClose={() => setShowAccountManager(false)}
       />
     </div>
   );
