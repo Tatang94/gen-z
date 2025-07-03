@@ -52,159 +52,30 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
     
     setIsSearching(true);
     try {
-      // Simulasi delay untuk meniru API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(query)}`);
       
-      // Mock Spotify API response dengan lebih banyak lagu
-      const mockResults: SpotifyTrack[] = [
-        {
-          id: '1',
-          name: 'Blinding Lights',
-          artist: 'The Weeknd',
-          album: 'After Hours',
-          preview_url: 'https://p.scdn.co/mp3-preview/1',
-          external_urls: { spotify: 'https://open.spotify.com/track/1' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273aaa'
-        },
-        {
-          id: '2',
-          name: 'Shape of You',
-          artist: 'Ed Sheeran',
-          album: '÷ (Deluxe)',
-          preview_url: 'https://p.scdn.co/mp3-preview/2',
-          external_urls: { spotify: 'https://open.spotify.com/track/2' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273bbb'
-        },
-        {
-          id: '3',
-          name: 'Someone Like You',
-          artist: 'Adele',
-          album: '21',
-          preview_url: 'https://p.scdn.co/mp3-preview/3',
-          external_urls: { spotify: 'https://open.spotify.com/track/3' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273ccc'
-        },
-        {
-          id: '4',
-          name: 'Watermelon Sugar',
-          artist: 'Harry Styles',
-          album: 'Fine Line',
-          preview_url: 'https://p.scdn.co/mp3-preview/4',
-          external_urls: { spotify: 'https://open.spotify.com/track/4' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273ddd'
-        },
-        {
-          id: '5',
-          name: 'Levitating',
-          artist: 'Dua Lipa',
-          album: 'Future Nostalgia',
-          preview_url: 'https://p.scdn.co/mp3-preview/5',
-          external_urls: { spotify: 'https://open.spotify.com/track/5' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273eee'
-        },
-        {
-          id: '6',
-          name: 'As It Was',
-          artist: 'Harry Styles',
-          album: 'Harry\'s House',
-          preview_url: 'https://p.scdn.co/mp3-preview/6',
-          external_urls: { spotify: 'https://open.spotify.com/track/6' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273fff'
-        },
-        {
-          id: '7',
-          name: 'Anti-Hero',
-          artist: 'Taylor Swift',
-          album: 'Midnights',
-          preview_url: 'https://p.scdn.co/mp3-preview/7',
-          external_urls: { spotify: 'https://open.spotify.com/track/7' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273ggg'
-        },
-        {
-          id: '8',
-          name: 'Bad Habit',
-          artist: 'Steve Lacy',
-          album: 'Gemini Rights',
-          preview_url: 'https://p.scdn.co/mp3-preview/8',
-          external_urls: { spotify: 'https://open.spotify.com/track/8' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273hhh'
-        },
-        {
-          id: '9',
-          name: 'Heat Waves',
-          artist: 'Glass Animals',
-          album: 'Dreamland',
-          preview_url: 'https://p.scdn.co/mp3-preview/9',
-          external_urls: { spotify: 'https://open.spotify.com/track/9' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273iii'
-        },
-        {
-          id: '10',
-          name: 'Stay',
-          artist: 'The Kid LAROI & Justin Bieber',
-          album: 'F*CK LOVE 3: OVER YOU',
-          preview_url: 'https://p.scdn.co/mp3-preview/10',
-          external_urls: { spotify: 'https://open.spotify.com/track/10' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273jjj'
-        },
-        {
-          id: '11',
-          name: 'Diam Diam',
-          artist: 'Arsy Widianto & Tiara Andini',
-          album: 'Diam Diam - Single',
-          preview_url: 'https://p.scdn.co/mp3-preview/11',
-          external_urls: { spotify: 'https://open.spotify.com/track/11' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273kkk'
-        },
-        {
-          id: '12',
-          name: 'Tak Ingin Usai',
-          artist: 'Keisya Levronka',
-          album: 'Tak Ingin Usai - Single',
-          preview_url: 'https://p.scdn.co/mp3-preview/12',
-          external_urls: { spotify: 'https://open.spotify.com/track/12' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273lll'
-        },
-        {
-          id: '13',
-          name: 'Runtuh',
-          artist: 'Feby Putri & Fiersa Besari',
-          album: 'Runtuh - Single',
-          preview_url: 'https://p.scdn.co/mp3-preview/13',
-          external_urls: { spotify: 'https://open.spotify.com/track/13' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273mmm'
-        },
-        {
-          id: '14',
-          name: 'Menghapus Jejakmu',
-          artist: 'Peterpan',
-          album: 'Hari Yang Cerah',
-          preview_url: 'https://p.scdn.co/mp3-preview/14',
-          external_urls: { spotify: 'https://open.spotify.com/track/14' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273nnn'
-        },
-        {
-          id: '15',
-          name: 'Mungkin Hari Ini Esok Atau Nanti',
-          artist: 'Anneth',
-          album: 'Mungkin Hari Ini Esok Atau Nanti - Single',
-          preview_url: 'https://p.scdn.co/mp3-preview/15',
-          external_urls: { spotify: 'https://open.spotify.com/track/15' },
-          image: 'https://i.scdn.co/image/ab67616d0000b273ooo'
-        }
-      ];
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
       
-      // Filter berdasarkan query dengan pencarian yang lebih fleksibel
-      const filtered = mockResults.filter(track => 
-        track.name.toLowerCase().includes(query.toLowerCase()) ||
-        track.artist.toLowerCase().includes(query.toLowerCase()) ||
-        track.album.toLowerCase().includes(query.toLowerCase())
-      );
-      
-      setSpotifyResults(filtered);
+      const results: SpotifyTrack[] = await response.json();
+      setSpotifyResults(results);
     } catch (error) {
       console.error('Error searching Spotify:', error);
-      setSpotifyResults([]);
+      
+      // Fallback dengan beberapa hasil mock jika API gagal
+      const fallbackResults: SpotifyTrack[] = [
+        {
+          id: 'fallback-1',
+          name: `Hasil untuk "${query}"`,
+          artist: 'Artis Demo',
+          album: 'Album Demo',
+          preview_url: undefined,
+          external_urls: { spotify: '#' },
+          image: undefined
+        }
+      ];
+      setSpotifyResults(fallbackResults);
     } finally {
       setIsSearching(false);
     }
@@ -505,13 +376,27 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
                       className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-left transition-colors"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                          <Music className="w-6 h-6 text-white" />
-                        </div>
+                        {track.image ? (
+                          <img 
+                            src={track.image} 
+                            alt={track.album}
+                            className="w-12 h-12 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                            <Music className="w-6 h-6 text-white" />
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{track.name}</p>
                           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{track.artist}</p>
                           <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{track.album}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                          <span className="text-xs text-green-600 font-medium">Spotify</span>
                         </div>
                       </div>
                     </button>

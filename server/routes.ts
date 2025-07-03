@@ -4,6 +4,7 @@ import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@share
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { searchSpotifyTracks } from "./spotify";
 
 // Setup multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -178,6 +179,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const fileUrl = `/uploads/${req.file.filename}`;
     res.json({ url: fileUrl });
   });
+
+  // Spotify search endpoint
+  app.get("/api/spotify/search", searchSpotifyTracks);
 
   // Get all stories
   app.get("/api/stories", async (req, res) => {
