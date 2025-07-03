@@ -42,19 +42,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
-      const allUsers = await db.select({
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        avatar: users.avatar,
-        bio: users.bio,
-        followers: users.followers,
-        following: users.following,
-        postsCount: users.postsCount,
-        isVerified: users.isVerified,
-        isOnline: users.isOnline
-      }).from(users);
-      res.json(allUsers);
+      // Use storage interface to get users
+      const allUsers = await db.select().from(users);
+      
+      // Format response to match frontend expectations
+      const formattedUsers = allUsers.map(user => ({
+        id: user.id.toString(),
+        username: user.username,
+        displayName: user.displayName,
+        avatar: user.avatar,
+        bio: user.bio,
+        followers: user.followers || 0,
+        following: user.following || 0,
+        isVerified: user.isVerified || false,
+        isOnline: user.isOnline || false
+      }));
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.json(formattedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ error: "Failed to fetch users" });
