@@ -1,56 +1,129 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import Stories from '../components/Stories';
 import CreatePost from '../components/CreatePost';
 import Post from '../components/Post';
-import { mockPosts, mockUsers, mockStories } from '../data/mockData';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Post as PostType, User } from '../types';
+import { mockUsers, mockStories } from '../data/mockData';
+import { Post as PostType, User, Story } from '../types';
 
 const HomePage: React.FC = () => {
-  const [posts, setPosts] = useLocalStorage<PostType[]>('posts', mockPosts);
-  const [users, setUsers] = useLocalStorage<User[]>('users', mockUsers);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentUser] = useState<User>(mockUsers[0]);
 
-  const handleLike = (postId: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
-        : post
-    ));
+  useEffect(() => {
+    fetchPosts();
+    fetchStories();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch('/api/posts');
+      const data = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleShare = (postId: string) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, isShared: !post.isShared, shares: post.isShared ? post.shares - 1 : post.shares + 1 }
-        : post
-    ));
+  const fetchStories = async () => {
+    try {
+      const response = await fetch('/api/stories');
+      const data = await response.json();
+      setStories(data);
+    } catch (error) {
+      console.error('Error fetching stories:', error);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { ...post, likes: data.likes, isLiked: data.isLiked }
+          : post
+      ));
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const handleShare = async (postId: string) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/share`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { ...post, shares: data.shares, isShared: true }
+          : post
+      ));
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
   };
 
   const handleFollow = (userId: string) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, followers: user.followers + 1 }
-        : user
-    ));
+    console.log('Follow user:', userId);
   };
 
-  const handleCreatePost = (content: string, image?: string) => {
-    const newPost: PostType = {
-      id: Date.now().toString(),
-      userId: currentUser.id,
-      user: currentUser,
-      content,
-      image,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: [],
-      shares: 0,
-      isLiked: false,
-      isShared: false
-    };
-    setPosts([newPost, ...posts]);
+  const handleCreatePost = async (content: string, image?: string) => {
+    try {
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 1,
+          content,
+          image,
+          timestamp: new Date().toISOString(),
+          likes: 0,
+          shares: 0,
+        }),
+      });
+      
+      if (response.ok) {
+        fetchPosts();
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+    }
+  };
+
+  const handleComment = async (postId: string, content: string) => {
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postId: parseInt(postId),
+          userId: 1,
+          content,
+          timestamp: new Date().toISOString(),
+          likes: 0,
+        }),
+      });
+      
+      if (response.ok) {
+        fetchPosts();
+      }
+    } catch (error) {
+      console.error('Error creating comment:', error);
+    }
   };
 
   return (
@@ -93,20 +166,28 @@ const HomePage: React.FC = () => {
         {/* Mobile Layout - Single Column */}
         <main className="max-w-lg mx-auto px-4 py-4">
           <div className="space-y-4">
-            <Stories stories={mockStories} />
+            <Stories stories={stories.length > 0 ? stories : mockStories} />
             <CreatePost onCreatePost={handleCreatePost} />
             
-            <div className="space-y-4">
-              {posts.map(post => (
-                <Post
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  onShare={handleShare}
-                  onFollow={handleFollow}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-gray-500">Memuat postingan...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map(post => (
+                  <Post
+                    key={post.id}
+                    post={post}
+                    onLike={handleLike}
+                    onShare={handleShare}
+                    onFollow={handleFollow}
+                    onComment={handleComment}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>

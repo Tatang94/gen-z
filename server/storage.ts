@@ -11,6 +11,8 @@ export interface IStorage {
   // Posts
   getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]>;
   createPost(post: InsertPost): Promise<Post>;
+  togglePostLike(postId: number): Promise<{ likes: number; isLiked: boolean }>;
+  sharePost(postId: number): Promise<{ shares: number }>;
   
   // Comments
   createComment(comment: InsertComment): Promise<Comment>;
@@ -89,6 +91,38 @@ export class DatabaseStorage implements IStorage {
       .values(insertStory)
       .returning();
     return story;
+  }
+
+  async togglePostLike(postId: number): Promise<{ likes: number; isLiked: boolean }> {
+    // For simplicity, we'll just increment the like count
+    // In a real app, you'd track individual user likes in a separate table
+    const [post] = await db.select().from(posts).where(eq(posts.id, postId));
+    if (!post) {
+      throw new Error('Post not found');
+    }
+
+    const newLikes = (post.likes || 0) + 1;
+    await db
+      .update(posts)
+      .set({ likes: newLikes })
+      .where(eq(posts.id, postId));
+
+    return { likes: newLikes, isLiked: true };
+  }
+
+  async sharePost(postId: number): Promise<{ shares: number }> {
+    const [post] = await db.select().from(posts).where(eq(posts.id, postId));
+    if (!post) {
+      throw new Error('Post not found');
+    }
+
+    const newShares = (post.shares || 0) + 1;
+    await db
+      .update(posts)
+      .set({ shares: newShares })
+      .where(eq(posts.id, postId));
+
+    return { shares: newShares };
   }
 }
 

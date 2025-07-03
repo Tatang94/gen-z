@@ -8,10 +8,12 @@ interface PostProps {
   onLike: (postId: string) => void;
   onShare: (postId: string) => void;
   onFollow: (userId: string) => void;
+  onComment?: (postId: string, content: string) => void;
 }
 
-const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
+const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment }) => {
   const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
@@ -115,11 +117,32 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow }) => {
               className="w-8 h-8 rounded-full object-cover"
             />
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Tulis komentar..."
-                className="w-full p-2 bg-white border border-gray-200 rounded-full outline-none focus:border-blue-500 transition-colors text-sm"
-              />
+              <div className="flex">
+                <input
+                  type="text"
+                  placeholder="Tulis komentar..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && commentText.trim()) {
+                      onComment?.(post.id, commentText.trim());
+                      setCommentText('');
+                    }
+                  }}
+                  className="flex-1 p-2 bg-white border border-gray-200 rounded-l-full outline-none focus:border-blue-500 transition-colors text-sm"
+                />
+                <button
+                  onClick={() => {
+                    if (commentText.trim()) {
+                      onComment?.(post.id, commentText.trim());
+                      setCommentText('');
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-r-full hover:bg-blue-600 transition-colors text-sm font-medium"
+                >
+                  Kirim
+                </button>
+              </div>
             </div>
           </div>
           
