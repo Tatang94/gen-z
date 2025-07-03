@@ -4,6 +4,7 @@ import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@share
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import express from "express";
 
 // Setup multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -100,11 +101,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new post
   app.post("/api/posts", async (req, res) => {
     try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
       const result = insertPostSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ error: "Invalid post data" });
@@ -118,91 +114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Like a post
-  app.post("/api/posts/:id/like", async (req, res) => {
-    try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
-      const postId = parseInt(req.params.id);
-      const result = await storage.togglePostLike(postId);
-      res.json(result);
-    } catch (error) {
-      console.error("Error liking post:", error);
-      res.status(500).json({ error: "Failed to like post" });
-    }
-  });
-
-  // Share a post
-  app.post("/api/posts/:id/share", async (req, res) => {
-    try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
-      const postId = parseInt(req.params.id);
-      const result = await storage.sharePost(postId);
-      res.json(result);
-    } catch (error) {
-      console.error("Error sharing post:", error);
-      res.status(500).json({ error: "Failed to share post" });
-    }
-  });
-
-  // Follow a user
-  app.post("/api/users/:id/follow", async (req, res) => {
-    try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
-      const userId = parseInt(req.params.id);
-      const result = await storage.followUser(userId);
-      res.json(result);
-    } catch (error) {
-      console.error("Error following user:", error);
-      res.status(500).json({ error: "Failed to follow user" });
-    }
-  });
-
-  // Image upload endpoint
-  app.post('/api/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ url: fileUrl });
-  });
-
-  // Get all stories
-  app.get("/api/stories", async (req, res) => {
-    try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
-      const stories = await storage.getStories();
-      res.json(stories);
-    } catch (error) {
-      console.error("Error fetching stories:", error);
-      res.status(500).json({ error: "Failed to fetch stories" });
-    }
-  });
-
   // Create a new comment
   app.post("/api/comments", async (req, res) => {
     try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
       const result = insertCommentSchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ error: "Invalid comment data" });
@@ -216,14 +130,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all stories with user info
+  app.get("/api/stories", async (req, res) => {
+    try {
+      const stories = await storage.getStories();
+      res.json(stories);
+    } catch (error) {
+      console.error("Error fetching stories:", error);
+      res.status(500).json({ error: "Failed to fetch stories" });
+    }
+  });
+
   // Create a new story
   app.post("/api/stories", async (req, res) => {
     try {
-      const storage = getStorage();
-      if (!storage) {
-        return res.status(500).json({ error: "Storage not initialized" });
-      }
-      
       const result = insertStorySchema.safeParse(req.body);
       if (!result.success) {
         return res.status(400).json({ error: "Invalid story data" });
@@ -237,6 +157,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const server = createServer(app);
-  return server;
+  // Upload image
+  app.post("/api/upload", upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      
+      const imageUrl = `/uploads/${req.file.filename}`;
+      res.json({ url: imageUrl });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  // Serve uploaded files statically with proper headers
+  app.use('/uploads', express.static(uploadDir, {
+    setHeaders: (res, path) => {
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+  }));
+
+  // Like/unlike a post
+  app.post("/api/posts/:id/like", async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const result = await storage.togglePostLike(postId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      res.status(500).json({ error: "Failed to toggle like" });
+    }
+  });
+
+  // Share a post
+  app.post("/api/posts/:id/share", async (req, res) => {
+    try {
+      const postId = parseInt(req.params.id);
+      const result = await storage.sharePost(postId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error sharing post:", error);
+      res.status(500).json({ error: "Failed to share post" });
+    }
+  });
+
+  // Follow a user
+  app.post("/api/users/:id/follow", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const result = await storage.followUser(userId);
+      res.setHeader('Content-Type', 'application/json');
+      res.json(result);
+    } catch (error) {
+      console.error("Error following user:", error);
+      res.status(500).json({ error: "Failed to follow user" });
+    }
+  });
+
+  const httpServer = createServer(app);
+
+  return httpServer;
 }

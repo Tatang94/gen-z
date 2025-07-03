@@ -41,6 +41,27 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize database
+  if (process.env.DATABASE_URL) {
+    try {
+      const { initializeDatabase } = await import("./database");
+      const { PostgreSQLStorage } = await import("./pg-storage");
+      const { pool } = await initializeDatabase();
+      const storage = new PostgreSQLStorage(pool);
+      (global as any).storage = storage;
+      console.log("✅ Using PostgreSQL database");
+    } catch (error: any) {
+      console.error("Failed to initialize PostgreSQL:", error.message);
+      console.log("Falling back to SQLite database");
+      const { storage } = await import("./storage");
+      (global as any).storage = storage;
+    }
+  } else {
+    console.log("Using SQLite database");
+    const { storage } = await import("./storage");
+    (global as any).storage = storage;
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
