@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Image, Smile, MapPin, Calendar, X, Music, Search } from 'lucide-react';
+import { Link } from 'wouter';
 
 interface CreatePostProps {
   onCreatePost: (content: string, image?: string, music?: SpotifyTrack) => void;
@@ -29,6 +30,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
   const [spotifyResults, setSpotifyResults] = useState<SpotifyTrack[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Emoji data
@@ -43,6 +45,30 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
   };
 
   const allEmojis = Object.values(emojiCategories).flat();
+
+  // Profile click handler
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('CreatePost Profile clicked!', showProfileMenu);
+    setShowProfileMenu(!showProfileMenu);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showProfileMenu) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    if (showProfileMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showProfileMenu]);
 
   // Search Spotify tracks
   const searchSpotify = async (query: string) => {
@@ -169,11 +195,55 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
     <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 mb-4">
       <form onSubmit={handleSubmit}>
         <div className="flex space-x-3">
-          <img
-            src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150"
-            alt="Your avatar"
-            className="w-8 h-8 rounded-full object-cover"
-          />
+          <div className="relative">
+            <button
+              onClick={handleProfileClick}
+              className="p-0 border-0 bg-transparent cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150"
+                alt="Your avatar"
+                className="w-8 h-8 rounded-full object-cover border-2 border-transparent hover:border-blue-500 transition-all"
+              />
+            </button>
+            
+            {/* Profile Dropdown Menu */}
+            {showProfileMenu && (
+              <div className="absolute left-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-2 z-[9999]">
+                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">Sarah Chen</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">@sarah_chen</p>
+                </div>
+                
+                <Link href="/profile">
+                  <button
+                    onClick={() => setShowProfileMenu(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    👤 Lihat Profil
+                  </button>
+                </Link>
+                
+                <Link href="/more">
+                  <button
+                    onClick={() => setShowProfileMenu(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    ⚙️ Pengaturan
+                  </button>
+                </Link>
+                
+                <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                  <button
+                    onClick={() => setShowProfileMenu(false)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
+                  >
+                    🚪 Keluar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="flex-1">
             <textarea
               value={content}
