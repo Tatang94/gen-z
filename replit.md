@@ -164,6 +164,13 @@ Changelog:
   - Responsive modals for music search and emoji selection
   - Mobile-optimized interfaces with touch-friendly interactions
   - Full integration with existing post creation workflow
+- July 03, 2025. Upgraded music search and help center with modern UI/UX:
+  - Migrated from Spotify API to free music APIs (iTunes, Deezer) with no API key required
+  - Global music search functionality with fallback system and local database
+  - Completely redesigned Help Center with glassmorphism and gradient design
+  - Modern category cards with hover animations and emoji patterns
+  - Enhanced FAQ interface with smooth transitions and source indicators
+  - Improved search experience with clear buttons and real-time filtering
 ```
 
 ## User Preferences
