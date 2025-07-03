@@ -7,6 +7,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  followUser(userId: number): Promise<{ followers: number }>;
   
   // Posts
   getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]>;
@@ -123,6 +124,21 @@ export class DatabaseStorage implements IStorage {
       .where(eq(posts.id, postId));
 
     return { shares: newShares };
+  }
+
+  async followUser(userId: number): Promise<{ followers: number }> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const newFollowers = (user.followers || 0) + 1;
+    await db
+      .update(users)
+      .set({ followers: newFollowers })
+      .where(eq(users.id, userId));
+
+    return { followers: newFollowers };
   }
 }
 

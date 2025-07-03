@@ -5,6 +5,7 @@ import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@share
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import express from "express";
 
 // Setup multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -122,11 +123,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files
-  app.use('/uploads', (req, res, next) => {
-    res.setHeader('Cache-Control', 'public, max-age=31536000');
-    next();
-  });
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(uploadDir));
 
   // Like/unlike a post
   app.post("/api/posts/:id/like", async (req, res) => {
@@ -149,6 +147,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error sharing post:", error);
       res.status(500).json({ error: "Failed to share post" });
+    }
+  });
+
+  // Follow a user
+  app.post("/api/users/:id/follow", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const result = await storage.followUser(userId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error following user:", error);
+      res.status(500).json({ error: "Failed to follow user" });
     }
   });
 
