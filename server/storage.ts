@@ -149,89 +149,10 @@ export class DatabaseStorage implements IStorage {
 
 // In-memory storage fallback
 class MemStorage implements IStorage {
-  private users: User[] = [
-    {
-      id: 1,
-      username: "john_doe",
-      password: "password",
-      displayName: "John Doe",
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=john",
-      bio: "Tech enthusiast and coffee lover ☕",
-      followers: 1234,
-      following: 567,
-      postsCount: 89,
-      isVerified: true,
-      joinDate: new Date("2023-01-15"),
-      isOnline: true
-    },
-    {
-      id: 2,
-      username: "jane_smith",
-      password: "password",
-      displayName: "Jane Smith",
-      avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=jane",
-      bio: "Artist | Designer | Nature lover 🌿",
-      followers: 892,
-      following: 234,
-      postsCount: 156,
-      isVerified: false,
-      joinDate: new Date("2023-03-22"),
-      isOnline: false
-    }
-  ];
+  private users: User[] = [];
 
-  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [
-    {
-      id: 1,
-      userId: 1,
-      content: "Just launched my new project! Excited to share it with everyone 🚀",
-      image: "https://picsum.photos/400/300?random=1",
-      timestamp: new Date("2024-01-15T10:30:00.000Z"),
-      likes: 24,
-      shares: 5,
-      user: this.users[0],
-      comments: [
-        {
-          id: 1,
-          postId: 1,
-          userId: 2,
-          content: "Congratulations! Can't wait to try it out!",
-          timestamp: new Date("2024-01-15T11:00:00.000Z"),
-          likes: 3,
-          user: this.users[1]
-        }
-      ]
-    },
-    {
-      id: 2,
-      userId: 2,
-      content: "Working on a new design project. Here's a sneak peek! ✨",
-      image: "https://picsum.photos/400/300?random=3",
-      timestamp: new Date("2024-01-14T14:20:00.000Z"),
-      likes: 31,
-      shares: 7,
-      user: this.users[1],
-      comments: []
-    }
-  ];
-  private stories: (Story & { user: User })[] = [
-    {
-      id: 1,
-      userId: 1,
-      image: "https://picsum.photos/300/500?random=5",
-      timestamp: new Date("2024-01-15T12:00:00.000Z"),
-      isViewed: false,
-      user: this.users[0]
-    },
-    {
-      id: 2,
-      userId: 2,
-      image: "https://picsum.photos/300/500?random=6",
-      timestamp: new Date("2024-01-15T11:30:00.000Z"),
-      isViewed: false,
-      user: this.users[1]
-    }
-  ];
+  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [];
+  private stories: (Story & { user: User })[] = [];
   private nextId = 10;
 
   async getUser(id: number): Promise<User | undefined> {
@@ -245,7 +166,7 @@ class MemStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const user: User = {
       id: this.nextId++,
-      password: "password",
+      bio: null,
       followers: 0,
       following: 0,
       postsCount: 0,
@@ -271,6 +192,7 @@ class MemStorage implements IStorage {
       likes: 0,
       shares: 0,
       timestamp: new Date(),
+      image: insertPost.image || null,
       ...insertPost
     };
 
