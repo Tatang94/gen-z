@@ -76,7 +76,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 mb-4">
       <form onSubmit={handleSubmit}>
         <div className="flex space-x-3">
           <img
@@ -89,10 +89,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Apa yang Anda pikirkan?"
-              className="w-full resize-none border-none outline-none text-sm placeholder-gray-500 bg-gray-100 rounded-full px-3 py-2"
+              className="w-full resize-none border-none outline-none text-sm placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700 rounded-full px-3 py-2"
               rows={1}
               onFocus={(e) => {
-                e.target.style.backgroundColor = 'white';
+                e.target.style.backgroundColor = document.documentElement.classList.contains('dark') ? '#374151' : 'white';
                 e.target.style.border = '1px solid #e5e7eb';
                 e.target.rows = 3;
                 e.target.style.borderRadius = '12px';
@@ -100,7 +100,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
               }}
               onBlur={(e) => {
                 if (!content) {
-                  e.target.style.backgroundColor = '#f3f4f6';
+                  e.target.style.backgroundColor = document.documentElement.classList.contains('dark') ? '#374151' : '#f3f4f6';
                   e.target.style.border = 'none';
                   e.target.rows = 1;
                   e.target.style.borderRadius = '24px';

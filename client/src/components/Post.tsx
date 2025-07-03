@@ -16,7 +16,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
   const [commentText, setCommentText] = useState('');
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-4">
       {/* Post Header */}
       <div className="p-3">
         <div className="flex items-center justify-between">
@@ -28,24 +28,24 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
             />
             <div>
               <div className="flex items-center space-x-1">
-                <h3 className="font-semibold text-gray-900 text-sm">{post.user.displayName}</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{post.user.displayName}</h3>
                 {post.user.isVerified && (
                   <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-[10px]">✓</span>
                   </div>
                 )}
               </div>
-              <p className="text-gray-500 text-xs">{formatTimeAgo(post.timestamp)} • 🌐</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs">{formatTimeAgo(post.timestamp)} • 🌐</p>
             </div>
           </div>
-          <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-            <MoreHorizontal className="w-4 h-4 text-gray-500" />
+          <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+            <MoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
         {/* Post Content */}
         <div className="mt-2">
-          <p className="text-gray-900 text-sm leading-relaxed">{post.content}</p>
+          <p className="text-gray-900 dark:text-white text-sm leading-relaxed">{post.content}</p>
         </div>
       </div>
 

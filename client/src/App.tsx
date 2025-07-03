@@ -39,20 +39,22 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="app">
-        <Switch>
-          <Route path="/" component={HomePage} />
-          <Route path="/search" component={SearchPage} />
-          <Route path="/chat" component={ChatPage} />
-          <Route path="/profile" component={ProfilePage} />
-          <Route path="/more" component={MorePage} />
-          <Route path="/admin" component={AdminPage} />
-          <Route>
-            <div className="flex items-center justify-center h-screen">
-              <h1 className="text-2xl font-bold">404 - Page Not Found</h1>
-            </div>
-          </Route>
-        </Switch>
+      <div className="app min-h-screen bg-gray-50 dark:bg-gray-900">
+        <main className="pb-16">
+          <Switch>
+            <Route path="/" component={HomePage} />
+            <Route path="/search" component={SearchPage} />
+            <Route path="/chat" component={ChatPage} />
+            <Route path="/profile" component={ProfilePage} />
+            <Route path="/more" component={MorePage} />
+            <Route path="/admin" component={AdminPage} />
+            <Route>
+              <div className="flex items-center justify-center h-screen">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">404 - Halaman Tidak Ditemukan</h1>
+              </div>
+            </Route>
+          </Switch>
+        </main>
         
         {/* Bottom Navigation - hide on admin page */}
         <Route path="/admin">
