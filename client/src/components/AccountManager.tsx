@@ -158,62 +158,62 @@ export default function AccountManager({ isOpen, onClose }: AccountManagerProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end md:items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl w-full md:max-w-4xl h-[95vh] md:max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
             Kelola Akun
           </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            <X className="w-5 h-5 md:w-6 md:h-6 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
-        <div className="flex">
-          {/* Tab Navigation */}
-          <div className="w-1/4 border-r border-gray-200 dark:border-gray-700">
-            <nav className="p-4 space-y-2">
+        <div className="flex flex-col md:flex-row h-full">
+          {/* Tab Navigation - Mobile Horizontal, Desktop Vertical */}
+          <div className="md:w-1/4 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
+            <nav className="flex md:flex-col p-3 md:p-4 space-x-3 md:space-x-0 md:space-y-2 overflow-x-auto md:overflow-x-visible">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
+                className={`flex-shrink-0 md:w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors whitespace-nowrap ${
                   activeTab === 'profile'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                <User className="w-5 h-5 mr-3" />
-                Profil
+                <User className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+                <span className="text-sm md:text-base">Profil</span>
               </button>
               <button
                 onClick={() => setActiveTab('security')}
-                className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
+                className={`flex-shrink-0 md:w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors whitespace-nowrap ${
                   activeTab === 'security'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                <Shield className="w-5 h-5 mr-3" />
-                Keamanan
+                <Shield className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+                <span className="text-sm md:text-base">Keamanan</span>
               </button>
               <button
                 onClick={() => setActiveTab('privacy')}
-                className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${
+                className={`flex-shrink-0 md:w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors whitespace-nowrap ${
                   activeTab === 'privacy'
                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
-                <Lock className="w-5 h-5 mr-3" />
-                Privasi
+                <Lock className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+                <span className="text-sm md:text-base">Privasi</span>
               </button>
             </nav>
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-[calc(95vh-140px)] md:max-h-[calc(90vh-80px)]">
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -229,16 +229,16 @@ export default function AccountManager({ isOpen, onClose }: AccountManagerProps)
                   </button>
                 </div>
 
-                <div className="flex items-center space-x-6">
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                  <div className="relative flex-shrink-0">
                     <img
                       src={isEditing ? editForm.avatar : profile.avatar}
                       alt="Avatar"
-                      className="w-24 h-24 rounded-full object-cover"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover"
                     />
                     {isEditing && (
-                      <label className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
-                        <Camera className="w-4 h-4" />
+                      <label className="absolute bottom-0 right-0 p-1.5 sm:p-2 bg-blue-600 text-white rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                        <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
                         <input
                           type="file"
                           accept="image/*"
@@ -248,22 +248,22 @@ export default function AccountManager({ isOpen, onClose }: AccountManagerProps)
                       </label>
                     )}
                   </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <div className="text-center sm:text-left">
+                    <h4 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                       {profile.displayName}
                     </h4>
                     <p className="text-gray-600 dark:text-gray-400">@{profile.username}</p>
-                    <div className="flex items-center mt-2">
+                    <div className="flex items-center justify-center sm:justify-start mt-2">
                       <Calendar className="w-4 h-4 mr-1 text-gray-500" />
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs sm:text-sm text-gray-500">
                         Bergabung sejak {new Date(profile.joinDate).toLocaleDateString('id-ID')}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-3 md:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Nama Lengkap
@@ -360,16 +360,16 @@ export default function AccountManager({ isOpen, onClose }: AccountManagerProps)
                 </div>
 
                 {isEditing && (
-                  <div className="flex justify-end space-x-3">
+                  <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      className="w-full sm:w-auto px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                     >
                       Batal
                     </button>
                     <button
                       onClick={handleSaveProfile}
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="w-full sm:w-auto flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Simpan

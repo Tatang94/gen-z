@@ -150,6 +150,13 @@ Changelog:
   - Two-factor authentication and password management
   - Privacy controls and data management tools
   - Professional support contact system with form submission
+- July 03, 2025. Enhanced mobile responsiveness for Account Manager:
+  - Mobile-first design with bottom sheet modal style
+  - Horizontal tab navigation on mobile, vertical on desktop
+  - Responsive form layouts and button arrangements
+  - Touch-friendly interface elements and proper spacing
+  - Mobile-optimized profile picture upload and editing
+  - Full mobile UX compliance for Vercel deployment
 ```
 
 ## User Preferences
