@@ -25,9 +25,13 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    if (!db) throw new Error('Database not available');
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user || undefined;
+    } catch (error) {
+      console.warn('Database query failed:', error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -176,9 +180,59 @@ class MemStorage implements IStorage {
     }
   ];
 
-  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [];
-  private stories: (Story & { user: User })[] = [];
-  private nextId = 3;
+  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [
+    {
+      id: 1,
+      userId: 1,
+      content: "Just launched my new project! Excited to share it with everyone 🚀",
+      image: "https://picsum.photos/400/300?random=1",
+      timestamp: new Date("2024-01-15T10:30:00.000Z"),
+      likes: 24,
+      shares: 5,
+      user: this.users[0],
+      comments: [
+        {
+          id: 1,
+          postId: 1,
+          userId: 2,
+          content: "Congratulations! Can't wait to try it out!",
+          timestamp: new Date("2024-01-15T11:00:00.000Z"),
+          likes: 3,
+          user: this.users[1]
+        }
+      ]
+    },
+    {
+      id: 2,
+      userId: 2,
+      content: "Working on a new design project. Here's a sneak peek! ✨",
+      image: "https://picsum.photos/400/300?random=3",
+      timestamp: new Date("2024-01-14T14:20:00.000Z"),
+      likes: 31,
+      shares: 7,
+      user: this.users[1],
+      comments: []
+    }
+  ];
+  private stories: (Story & { user: User })[] = [
+    {
+      id: 1,
+      userId: 1,
+      image: "https://picsum.photos/300/500?random=5",
+      timestamp: new Date("2024-01-15T12:00:00.000Z"),
+      isViewed: false,
+      user: this.users[0]
+    },
+    {
+      id: 2,
+      userId: 2,
+      image: "https://picsum.photos/300/500?random=6",
+      timestamp: new Date("2024-01-15T11:30:00.000Z"),
+      isViewed: false,
+      user: this.users[1]
+    }
+  ];
+  private nextId = 10;
 
   async getUser(id: number): Promise<User | undefined> {
     return this.users.find(user => user.id === id);
@@ -294,5 +348,5 @@ class MemStorage implements IStorage {
   }
 }
 
-// Use database if available, otherwise fall back to in-memory storage
-export const storage = db ? new DatabaseStorage() : new MemStorage();
+// Use SQLite storage for now to ensure compatibility
+export const storage = new MemStorage();

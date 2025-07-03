@@ -1,21 +1,29 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
+import { db as sqliteDb, initializeDatabase } from './sqlite-db';
 
-neonConfig.webSocketConstructor = ws;
-
-// Check if we have a database URL, but don't fail immediately
-let db: ReturnType<typeof drizzle> | null = null;
+// Check if we have a database URL, but fall back to SQLite
+let db: ReturnType<typeof drizzle> | typeof sqliteDb = sqliteDb;
 let pool: Pool | null = null;
 
-if (process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('supabase.co')) {
   try {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    db = drizzle({ client: pool, schema });
+    pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+    db = drizzle(pool, { schema });
+    console.log("PostgreSQL database connection established");
   } catch (error) {
-    console.warn("Failed to connect to database:", error);
+    console.warn("Failed to connect to PostgreSQL, using SQLite:", error.message);
+    db = sqliteDb;
+    initializeDatabase();
   }
+} else {
+  console.log("Using SQLite database");
+  db = sqliteDb;
+  initializeDatabase();
 }
 
 export { pool, db };
