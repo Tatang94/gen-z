@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@shared/schema";
+import { insertPostSchema, insertCommentSchema, insertStorySchema, users } from "@shared/schema";
+import { db } from "./db";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -38,6 +39,28 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        avatar: users.avatar,
+        bio: users.bio,
+        followers: users.followers,
+        following: users.following,
+        postsCount: users.postsCount,
+        isVerified: users.isVerified,
+        isOnline: users.isOnline
+      }).from(users);
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
   // Get all posts with user info and comments
   app.get("/api/posts", async (req, res) => {
     try {
