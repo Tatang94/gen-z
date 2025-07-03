@@ -134,3 +134,70 @@ textarea {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* Global Settings Styles */
+:root {
+  --media-quality: high;
+}
+
+/* Data Saver Mode */
+.data-saver-mode img {
+  filter: contrast(0.8) brightness(0.9);
+}
+
+.data-saver-mode video {
+  filter: contrast(0.8) brightness(0.9);
+}
+
+/* Profile Page Improvements */
+.profile-avatar {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.02);
+}
+
+.profile-stats {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+/* Enhanced Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* Modal Animations */
+.modal-enter {
+  animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Settings Toggle Animations */
+.settings-toggle {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-toggle.active {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Calendar, MapPin, Link as LinkIcon, Edit3, Camera, Grid, Bookmark, Users } from 'lucide-react';
+import { Settings, Calendar, MapPin, Link as LinkIcon, Edit3, Camera, Grid, Bookmark, Users, Share2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 interface User {
@@ -79,80 +79,84 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Info */}
-      <div className="bg-white dark:bg-gray-800 p-4">
-        <div className="flex items-start space-x-4">
+      <div className="bg-white dark:bg-gray-800 p-6">
+        {/* Profile Header */}
+        <div className="flex items-center space-x-4 mb-6">
           <div className="relative">
             <img
               src={currentUser.avatar}
               alt={currentUser.displayName}
-              className="w-20 h-20 rounded-full object-cover"
+              className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-gray-700 profile-avatar"
             />
-            <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
-              <Camera size={12} />
+            <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-blue-700 transition-colors">
+              <Camera size={16} />
             </button>
           </div>
           
           <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{currentUser.displayName}</h2>
-                  {currentUser.isVerified && (
-                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
-                    </div>
-                  )}
+            <div className="flex items-center space-x-3 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{currentUser.displayName}</h2>
+              {currentUser.isVerified && (
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
                 </div>
-                <p className="text-gray-600 dark:text-gray-400">@{currentUser.username}</p>
-              </div>
-              
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center space-x-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Edit3 size={16} />
-                <span>Edit Profil</span>
-              </button>
+              )}
             </div>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">@{currentUser.username}</p>
+          </div>
+        </div>
 
-            {/* Stats */}
-            <div className="flex space-x-6 mt-4">
-              <div className="text-center">
-                <div className="font-bold text-lg text-gray-900 dark:text-white">{formatNumber(currentUser.postsCount)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Postingan</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-lg text-gray-900 dark:text-white">{formatNumber(currentUser.followers)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Pengikut</div>
-              </div>
-              <div className="text-center">
-                <div className="font-bold text-lg text-gray-900 dark:text-white">{formatNumber(currentUser.following)}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Mengikuti</div>
-              </div>
-            </div>
+        {/* Action Buttons */}
+        <div className="flex space-x-3 mb-6">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+          >
+            <Edit3 size={18} />
+            <span>Edit Profil</span>
+          </button>
+          <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 btn-primary text-white rounded-xl font-medium">
+            <Share2 size={18} />
+            <span>Bagikan</span>
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="text-center">
+            <div className="font-bold text-2xl text-gray-900 dark:text-white">{formatNumber(currentUser.postsCount)}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Postingan</div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold text-2xl text-gray-900 dark:text-white">{formatNumber(currentUser.followers)}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Pengikut</div>
+          </div>
+          <div className="text-center">
+            <div className="font-bold text-2xl text-gray-900 dark:text-white">{formatNumber(currentUser.following)}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Mengikuti</div>
           </div>
         </div>
 
         {/* Bio */}
-        <div className="mt-4">
-          <p className="text-gray-900 dark:text-white whitespace-pre-line">{currentUser.bio}</p>
+        <div className="space-y-3">
+          <p className="text-gray-900 dark:text-white whitespace-pre-line leading-relaxed">{currentUser.bio}</p>
           
-          <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
             {currentUser.location && (
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-2">
                 <MapPin size={16} />
                 <span>{currentUser.location}</span>
               </div>
             )}
             {currentUser.website && (
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-2">
                 <LinkIcon size={16} />
-                <a href={currentUser.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <a href={currentUser.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
                   {currentUser.website.replace('https://', '')}
                 </a>
               </div>
             )}
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <Calendar size={16} />
               <span>Bergabung {formatDate(currentUser.joinDate)}</span>
             </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
+import SettingsModal from '../components/SettingsModal';
 import { 
   Settings, 
   Moon, 
@@ -27,6 +28,7 @@ export default function MorePage() {
   const [notifications, setNotifications] = useState(true);
   const [showModal, setShowModal] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -68,7 +70,7 @@ export default function MorePage() {
   };
 
   const handleSettings = () => {
-    setShowModal('settings');
+    setShowSettings(true);
   };
 
   const handleHelp = () => {
@@ -402,6 +404,12 @@ export default function MorePage() {
           </div>
         </div>
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal 
+        isOpen={showSettings} 
+        onClose={() => setShowSettings(false)} 
+      />
     </div>
   );
 }
