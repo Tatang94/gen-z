@@ -123,8 +123,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Serve uploaded files statically
-  app.use('/uploads', express.static(uploadDir));
+  // Serve uploaded files statically with proper headers
+  app.use('/uploads', express.static(uploadDir, {
+    setHeaders: (res, path) => {
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+  }));
 
   // Like/unlike a post
   app.post("/api/posts/:id/like", async (req, res) => {
@@ -155,6 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.params.id);
       const result = await storage.followUser(userId);
+      res.setHeader('Content-Type', 'application/json');
       res.json(result);
     } catch (error) {
       console.error("Error following user:", error);
