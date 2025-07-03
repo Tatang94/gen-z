@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import Stories from '../components/Stories';
 import CreatePost from '../components/CreatePost';
 import Post from '../components/Post';
@@ -11,11 +11,29 @@ const HomePage: React.FC = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser] = useState<User>(mockUsers[0]);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     fetchPosts();
     fetchStories();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showProfileMenu) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    if (showProfileMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showProfileMenu]);
 
   const fetchPosts = async () => {
     try {
@@ -145,6 +163,20 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleProfileClick = () => {
+    setShowProfileMenu(!showProfileMenu);
+  };
+
+  const handleNavigateToProfile = () => {
+    setLocation('/profile');
+    setShowProfileMenu(false);
+  };
+
+  const handleNavigateToSettings = () => {
+    setLocation('/more');
+    setShowProfileMenu(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
@@ -169,12 +201,46 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Right - User Profile */}
-            <div className="flex items-center">
+            <div className="relative">
               <img
                 src={currentUser.avatar}
                 alt={currentUser.displayName}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-8 h-8 rounded-full object-cover cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                onClick={handleProfileClick}
               />
+              
+              {/* Profile Dropdown Menu */}
+              {showProfileMenu && (
+                <div className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                  <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">{currentUser.displayName}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">@{currentUser.username}</p>
+                  </div>
+                  
+                  <button
+                    onClick={handleNavigateToProfile}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    👤 Lihat Profil
+                  </button>
+                  
+                  <button
+                    onClick={handleNavigateToSettings}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    ⚙️ Pengaturan
+                  </button>
+                  
+                  <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                    <button
+                      onClick={() => setShowProfileMenu(false)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
+                    >
+                      🚪 Keluar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
