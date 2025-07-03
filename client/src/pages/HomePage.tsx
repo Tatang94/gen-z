@@ -163,19 +163,12 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleProfileClick = () => {
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowProfileMenu(!showProfileMenu);
   };
 
-  const handleNavigateToProfile = () => {
-    setLocation('/profile');
-    setShowProfileMenu(false);
-  };
 
-  const handleNavigateToSettings = () => {
-    setLocation('/more');
-    setShowProfileMenu(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -217,19 +210,23 @@ const HomePage: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">@{currentUser.username}</p>
                   </div>
                   
-                  <button
-                    onClick={handleNavigateToProfile}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    👤 Lihat Profil
-                  </button>
+                  <Link href="/profile">
+                    <button
+                      onClick={() => setShowProfileMenu(false)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      👤 Lihat Profil
+                    </button>
+                  </Link>
                   
-                  <button
-                    onClick={handleNavigateToSettings}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  >
-                    ⚙️ Pengaturan
-                  </button>
+                  <Link href="/more">
+                    <button
+                      onClick={() => setShowProfileMenu(false)}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      ⚙️ Pengaturan
+                    </button>
+                  </Link>
                   
                   <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
                     <button
