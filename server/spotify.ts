@@ -1,71 +1,22 @@
 import { Request, Response } from 'express';
 
-interface SpotifyTokenResponse {
-  access_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-interface SpotifyTrack {
+interface FreeApiTrack {
   id: string;
   name: string;
-  artists: Array<{ name: string }>;
-  album: {
-    name: string;
-    images: Array<{ url: string; height: number; width: number }>;
-  };
-  external_urls: {
-    spotify: string;
-  };
-  preview_url?: string;
+  artist: string;
+  album: string;
+  image: string;
+  downloadUrl: string;
+  streamUrl: string;
+  duration: string;
 }
 
-interface SpotifySearchResponse {
-  tracks: {
-    items: SpotifyTrack[];
-  };
+interface FreeApiResponse {
+  success: boolean;
+  data: FreeApiTrack[];
 }
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
-
-async function getSpotifyToken(): Promise<string> {
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error('Spotify credentials not configured');
-  }
-
-  // Check if we have a valid cached token
-  if (cachedToken && cachedToken.expiresAt > Date.now()) {
-    return cachedToken.token;
-  }
-
-  const response = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`
-    },
-    body: 'grant_type=client_credentials'
-  });
-
-  if (!response.ok) {
-    throw new Error(`Spotify auth failed: ${response.status}`);
-  }
-
-  const data: SpotifyTokenResponse = await response.json();
-  
-  // Cache the token
-  cachedToken = {
-    token: data.access_token,
-    expiresAt: Date.now() + (data.expires_in - 60) * 1000 // Subtract 60 seconds for safety
-  };
-
-  return data.access_token;
-}
-
-export async function searchSpotifyTracks(req: Request, res: Response) {
+export async function searchMusicTracks(req: Request, res: Response) {
   try {
     const { q } = req.query;
 
@@ -73,54 +24,86 @@ export async function searchSpotifyTracks(req: Request, res: Response) {
       return res.status(400).json({ error: 'Query parameter required' });
     }
 
-    const token = await getSpotifyToken();
-    
-    const searchUrl = new URL('https://api.spotify.com/v1/search');
-    searchUrl.searchParams.append('q', q);
-    searchUrl.searchParams.append('type', 'track');
-    searchUrl.searchParams.append('limit', '20');
-    searchUrl.searchParams.append('market', 'ID'); // Indonesia market
+    // Try multiple free music APIs
+    const searchEngines = ['gaama', 'seevn', 'hunjama', 'mtmusic'];
+    let allTracks: any[] = [];
 
-    const response = await fetch(searchUrl.toString(), {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    for (const engine of searchEngines) {
+      try {
+        const apiUrl = `https://musicapi.x007.workers.dev/search?q=${encodeURIComponent(q)}&searchEngine=${engine}`;
+        const response = await fetch(apiUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data && Array.isArray(data.data)) {
+            const tracks = data.data.slice(0, 5).map((track: any) => ({
+              id: track.id || `${engine}-${Date.now()}-${Math.random()}`,
+              name: track.name || track.title || 'Unknown Song',
+              artist: track.artist || track.singers || 'Unknown Artist',
+              album: track.album || 'Unknown Album',
+              preview_url: track.streamUrl || track.downloadUrl || null,
+              external_urls: { spotify: track.downloadUrl || '#' },
+              image: track.image || null,
+              source: engine
+            }));
+            allTracks = allTracks.concat(tracks);
+          }
+        }
+      } catch (engineError) {
+        console.log(`Engine ${engine} failed:`, engineError);
+        continue;
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Spotify search failed: ${response.status}`);
     }
 
-    const data: SpotifySearchResponse = await response.json();
+    // If no tracks found from free APIs, try iTunes Search API as fallback
+    if (allTracks.length === 0) {
+      try {
+        const itunesUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=10`;
+        const response = await fetch(itunesUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.results && Array.isArray(data.results)) {
+            allTracks = data.results.map((track: any) => ({
+              id: track.trackId?.toString() || `itunes-${Date.now()}-${Math.random()}`,
+              name: track.trackName || 'Unknown Song',
+              artist: track.artistName || 'Unknown Artist',
+              album: track.collectionName || 'Unknown Album',
+              preview_url: track.previewUrl || null,
+              external_urls: { spotify: track.trackViewUrl || '#' },
+              image: track.artworkUrl100 || track.artworkUrl60 || null,
+              source: 'itunes'
+            }));
+          }
+        }
+      } catch (itunesError) {
+        console.log('iTunes API failed:', itunesError);
+      }
+    }
 
-    // Transform Spotify data to our format
-    const tracks = data.tracks.items.map(track => ({
-      id: track.id,
-      name: track.name,
-      artist: track.artists.map(artist => artist.name).join(', '),
-      album: track.album.name,
-      preview_url: track.preview_url,
-      external_urls: track.external_urls,
-      image: track.album.images[0]?.url || null
-    }));
+    // Remove duplicates and limit results
+    const uniqueTracks = allTracks.filter((track, index, self) => 
+      index === self.findIndex(t => t.name.toLowerCase() === track.name.toLowerCase() && t.artist.toLowerCase() === track.artist.toLowerCase())
+    ).slice(0, 20);
 
-    res.json(tracks);
+    res.json(uniqueTracks);
   } catch (error) {
-    console.error('Spotify search error:', error);
+    console.error('Music search error:', error);
     
-    // Fallback to mock data if Spotify fails
-    const mockTracks = [
+    // Final fallback with some example tracks
+    const fallbackTracks = [
       {
-        id: 'mock-1',
-        name: `Results for "${req.query.q}"`,
-        artist: 'Mock Artist',
-        album: 'Mock Album',
+        id: 'fallback-1',
+        name: `Hasil pencarian untuk "${req.query.q}"`,
+        artist: 'Tidak ditemukan',
+        album: 'Coba kata kunci lain',
         preview_url: null,
         external_urls: { spotify: '#' },
-        image: null
+        image: null,
+        source: 'fallback'
       }
     ];
     
-    res.json(mockTracks);
+    res.json(fallbackTracks);
   }
 }

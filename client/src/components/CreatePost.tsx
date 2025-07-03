@@ -15,6 +15,7 @@ interface SpotifyTrack {
     spotify: string;
   };
   image?: string;
+  source?: string;
 }
 
 const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
@@ -393,10 +394,31 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
                           <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{track.album}</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                            track.source === 'itunes' ? 'bg-gray-800' : 
+                            track.source === 'gaama' ? 'bg-blue-500' :
+                            track.source === 'seevn' ? 'bg-purple-500' :
+                            track.source === 'hunjama' ? 'bg-orange-500' :
+                            track.source === 'mtmusic' ? 'bg-red-500' :
+                            'bg-green-500'
+                          }`}>
                             <div className="w-2 h-2 bg-white rounded-full"></div>
                           </div>
-                          <span className="text-xs text-green-600 font-medium">Spotify</span>
+                          <span className={`text-xs font-medium ${
+                            track.source === 'itunes' ? 'text-gray-800' : 
+                            track.source === 'gaama' ? 'text-blue-600' :
+                            track.source === 'seevn' ? 'text-purple-600' :
+                            track.source === 'hunjama' ? 'text-orange-600' :
+                            track.source === 'mtmusic' ? 'text-red-600' :
+                            'text-green-600'
+                          }`}>
+                            {track.source === 'itunes' ? 'iTunes' : 
+                             track.source === 'gaama' ? 'Gaama' :
+                             track.source === 'seevn' ? 'Seevn' :
+                             track.source === 'hunjama' ? 'Hunjama' :
+                             track.source === 'mtmusic' ? 'MTMusic' :
+                             'Free'}
+                          </span>
                         </div>
                       </div>
                     </button>
