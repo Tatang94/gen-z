@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'wouter';
 import { 
   Settings, 
   Moon, 
@@ -16,28 +17,104 @@ import {
   Users,
   Star,
   Download,
-  Share2
+  Share2,
+  X
 } from 'lucide-react';
 
 export default function MorePage() {
+  const [, setLocation] = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
+  const [showModal, setShowModal] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', (!isDarkMode).toString());
+  };
+
+  const handleEditProfile = () => {
+    setLocation('/profile');
+  };
+
+  const handleYourActivity = () => {
+    setShowModal('activity');
+  };
+
+  const handleSaved = () => {
+    setLocation('/profile');
+  };
+
+  const handleArchive = () => {
+    setShowModal('archive');
+  };
+
+  const handleCloseFriends = () => {
+    setShowModal('closeFriends');
+  };
+
+  const handleFavorites = () => {
+    setShowModal('favorites');
+  };
+
+  const handleNotifications = () => {
+    setNotifications(!notifications);
+    localStorage.setItem('notifications', (!notifications).toString());
+  };
+
+  const handlePrivacy = () => {
+    setShowModal('privacy');
+  };
+
+  const handleSettings = () => {
+    setShowModal('settings');
+  };
+
+  const handleHelp = () => {
+    setShowModal('help');
+  };
+
+  const handleAbout = () => {
+    setShowModal('about');
+  };
+
+  const handleDownloadData = () => {
+    setShowModal('downloadData');
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'GenZ Social',
+        text: 'Join me on GenZ Social - the coolest social media app!',
+        url: window.location.origin
+      });
+    } else {
+      setShowModal('share');
+    }
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.clear();
+    setLocation('/');
+    setShowLogoutConfirm(false);
   };
 
   const menuSections = [
     {
       title: 'Akun',
       items: [
-        { icon: User, label: 'Edit Profil', action: () => console.log('Edit Profile') },
-        { icon: Heart, label: 'Aktivitas Anda', action: () => console.log('Your Activity') },
-        { icon: Bookmark, label: 'Tersimpan', action: () => console.log('Saved') },
-        { icon: Clock, label: 'Arsip', action: () => console.log('Archive') },
-        { icon: Users, label: 'Teman Dekat', action: () => console.log('Close Friends') },
-        { icon: Star, label: 'Favorit', action: () => console.log('Favorites') }
+        { icon: User, label: 'Edit Profil', action: handleEditProfile },
+        { icon: Heart, label: 'Aktivitas Anda', action: handleYourActivity },
+        { icon: Bookmark, label: 'Tersimpan', action: handleSaved },
+        { icon: Clock, label: 'Arsip', action: handleArchive },
+        { icon: Users, label: 'Teman Dekat', action: handleCloseFriends },
+        { icon: Star, label: 'Favorit', action: handleFavorites }
       ]
     },
     {
@@ -53,21 +130,21 @@ export default function MorePage() {
         { 
           icon: Bell, 
           label: 'Notifikasi', 
-          action: () => setNotifications(!notifications),
+          action: handleNotifications,
           toggle: true,
           enabled: notifications
         },
-        { icon: Shield, label: 'Privasi & Keamanan', action: () => console.log('Privacy') },
-        { icon: Settings, label: 'Pengaturan Umum', action: () => console.log('General Settings') }
+        { icon: Shield, label: 'Privasi & Keamanan', action: handlePrivacy },
+        { icon: Settings, label: 'Pengaturan Umum', action: handleSettings }
       ]
     },
     {
       title: 'Bantuan',
       items: [
-        { icon: HelpCircle, label: 'Pusat Bantuan', action: () => console.log('Help Center') },
-        { icon: Info, label: 'Tentang GenZ', action: () => console.log('About') },
-        { icon: Download, label: 'Unduh Data', action: () => console.log('Download Data') },
-        { icon: Share2, label: 'Bagikan App', action: () => console.log('Share App') }
+        { icon: HelpCircle, label: 'Pusat Bantuan', action: handleHelp },
+        { icon: Info, label: 'Tentang GenZ', action: handleAbout },
+        { icon: Download, label: 'Unduh Data', action: handleDownloadData },
+        { icon: Share2, label: 'Bagikan App', action: handleShare }
       ]
     }
   ];
@@ -155,13 +232,176 @@ export default function MorePage() {
       {/* Logout Button */}
       <div className="bg-white dark:bg-gray-800 mt-4">
         <button
-          onClick={() => console.log('Logout')}
+          onClick={handleLogout}
           className="w-full px-4 py-4 flex items-center justify-center space-x-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
         >
           <LogOut size={20} />
           <span className="font-medium">Keluar</span>
         </button>
       </div>
+
+      {/* Modal Dialogs */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {showModal === 'activity' && 'Aktivitas Anda'}
+                {showModal === 'archive' && 'Arsip'}
+                {showModal === 'closeFriends' && 'Teman Dekat'}
+                {showModal === 'favorites' && 'Favorit'}
+                {showModal === 'privacy' && 'Privasi & Keamanan'}
+                {showModal === 'settings' && 'Pengaturan Umum'}
+                {showModal === 'help' && 'Pusat Bantuan'}
+                {showModal === 'about' && 'Tentang GenZ'}
+                {showModal === 'downloadData' && 'Unduh Data'}
+                {showModal === 'share' && 'Bagikan App'}
+              </h3>
+              <button
+                onClick={() => setShowModal(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="text-gray-600 dark:text-gray-400">
+              {showModal === 'activity' && (
+                <div>
+                  <p>Lihat semua aktivitas Anda di GenZ Social:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>• Postingan yang disukai</li>
+                    <li>• Komentar yang dibuat</li>
+                    <li>• Profil yang dikunjungi</li>
+                    <li>• Pencarian terbaru</li>
+                  </ul>
+                </div>
+              )}
+              
+              {showModal === 'archive' && (
+                <div>
+                  <p>Arsip berisi postingan yang Anda sembunyikan dari profil. Postingan yang diarsipkan hanya dapat dilihat oleh Anda.</p>
+                  <p className="mt-3 text-sm">Belum ada postingan yang diarsipkan.</p>
+                </div>
+              )}
+              
+              {showModal === 'closeFriends' && (
+                <div>
+                  <p>Teman dekat adalah orang-orang yang paling dekat dengan Anda di GenZ Social. Mereka akan melihat konten khusus yang Anda bagikan.</p>
+                  <p className="mt-3 text-sm">Belum ada teman dekat yang dipilih.</p>
+                </div>
+              )}
+              
+              {showModal === 'favorites' && (
+                <div>
+                  <p>Postingan dan konten favorit Anda akan disimpan di sini untuk akses mudah.</p>
+                  <p className="mt-3 text-sm">Belum ada konten favorit.</p>
+                </div>
+              )}
+              
+              {showModal === 'privacy' && (
+                <div>
+                  <p>Kelola pengaturan privasi dan keamanan akun Anda:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>• Visibilitas profil</li>
+                    <li>• Kontrol pesan</li>
+                    <li>• Blokir pengguna</li>
+                    <li>• Autentikasi dua faktor</li>
+                  </ul>
+                </div>
+              )}
+              
+              {showModal === 'settings' && (
+                <div>
+                  <p>Pengaturan umum aplikasi:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>• Bahasa</li>
+                    <li>• Kualitas media</li>
+                    <li>• Autoplay video</li>
+                    <li>• Penggunaan data</li>
+                  </ul>
+                </div>
+              )}
+              
+              {showModal === 'help' && (
+                <div>
+                  <p>Butuh bantuan? Kami siap membantu Anda:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>• FAQ</li>
+                    <li>• Panduan penggunaan</li>
+                    <li>• Hubungi support</li>
+                    <li>• Laporkan masalah</li>
+                  </ul>
+                </div>
+              )}
+              
+              {showModal === 'about' && (
+                <div>
+                  <p><strong>GenZ Social v1.0.0</strong></p>
+                  <p className="mt-2">Platform media sosial yang dirancang khusus untuk generasi Z dengan fitur-fitur modern dan antarmuka yang intuitif.</p>
+                  <p className="mt-3 text-sm">© 2025 GenZ Social. Semua hak dilindungi.</p>
+                </div>
+              )}
+              
+              {showModal === 'downloadData' && (
+                <div>
+                  <p>Unduh salinan data Anda termasuk:</p>
+                  <ul className="mt-3 space-y-2">
+                    <li>• Postingan dan komentar</li>
+                    <li>• Foto dan video</li>
+                    <li>• Informasi profil</li>
+                    <li>• Daftar teman</li>
+                  </ul>
+                  <p className="mt-3 text-sm">Proses ini dapat memakan waktu beberapa menit.</p>
+                </div>
+              )}
+              
+              {showModal === 'share' && (
+                <div>
+                  <p>Bagikan GenZ Social dengan teman-teman Anda!</p>
+                  <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm font-mono break-all">{window.location.origin}</p>
+                  </div>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(window.location.origin)}
+                    className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg w-full"
+                  >
+                    Salin Link
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Konfirmasi Keluar
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Apakah Anda yakin ingin keluar dari akun Anda?
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
