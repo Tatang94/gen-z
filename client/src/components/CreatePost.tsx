@@ -215,22 +215,22 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
                   <p className="text-sm text-gray-500 dark:text-gray-400">@sarah_chen</p>
                 </div>
                 
-                <Link href="/profile">
-                  <button
+                <Link href="/profile" className="block">
+                  <div
                     onClick={() => setShowProfileMenu(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer"
                   >
                     👤 Lihat Profil
-                  </button>
+                  </div>
                 </Link>
                 
-                <Link href="/more">
-                  <button
+                <Link href="/more" className="block">
+                  <div
                     onClick={() => setShowProfileMenu(false)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer"
                   >
                     ⚙️ Pengaturan
-                  </button>
+                  </div>
                 </Link>
                 
                 <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">

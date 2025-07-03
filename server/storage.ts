@@ -149,7 +149,22 @@ export class DatabaseStorage implements IStorage {
 
 // In-memory storage fallback
 class MemStorage implements IStorage {
-  private users: User[] = [];
+  private users: User[] = [
+    {
+      id: 1,
+      username: 'sarah_chen',
+      password: 'password123',
+      displayName: 'Sarah Chen',
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Content creator & traveler',
+      followers: 1250,
+      following: 340,
+      postsCount: 85,
+      isVerified: true,
+      joinDate: new Date('2023-01-15'),
+      isOnline: true
+    }
+  ];
 
   private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [];
   private stories: (Story & { user: User })[] = [];
