@@ -220,20 +220,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a new story
-  app.post("/api/stories", async (req, res) => {
+  // Create a new story with image upload
+  app.post("/api/stories", upload.single('image'), async (req, res) => {
     try {
       const storage = getStorage();
       if (!storage) {
         return res.status(500).json({ error: "Storage not initialized" });
       }
       
-      const result = insertStorySchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({ error: "Invalid story data" });
+      const userId = parseInt(req.body.userId);
+      if (!userId || !req.file) {
+        return res.status(400).json({ error: "User ID and image are required" });
       }
+
+      const imageUrl = `/uploads/${req.file.filename}`;
       
-      const story = await storage.createStory(result.data);
+      const storyData = {
+        userId,
+        image: imageUrl,
+        timestamp: new Date(),
+        isViewed: false
+      };
+      
+      const story = await storage.createStory(storyData);
       res.status(201).json(story);
     } catch (error) {
       console.error("Error creating story:", error);

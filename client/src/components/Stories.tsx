@@ -4,15 +4,32 @@ import { Story } from '../types';
 
 interface StoriesProps {
   stories: Story[];
+  onCreateStory: (imageFile: File) => void;
 }
 
-const Stories: React.FC<StoriesProps> = ({ stories }) => {
+const Stories: React.FC<StoriesProps> = ({ stories, onCreateStory }) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleCreateStoryClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      onCreateStory(file);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 mb-4">
       <div className="flex space-x-2 overflow-x-auto pb-1">
         {/* Add Story */}
         <div className="flex-shrink-0 text-center">
-          <div className="relative w-16 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+          <div 
+            onClick={handleCreateStoryClick}
+            className="relative w-16 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+          >
             <img
               src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150"
               alt="Your story"
@@ -25,6 +42,13 @@ const Stories: React.FC<StoriesProps> = ({ stories }) => {
               <p className="text-[10px] text-gray-900 dark:text-gray-100 font-medium">Buat</p>
             </div>
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
         </div>
 
         {/* Stories */}

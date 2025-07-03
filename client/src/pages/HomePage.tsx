@@ -126,6 +126,25 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleCreateStory = async (imageFile: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('userId', '1');
+
+      const response = await fetch('/api/stories', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        fetchStories();
+      }
+    } catch (error) {
+      console.error('Error creating story:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
@@ -166,7 +185,7 @@ const HomePage: React.FC = () => {
         {/* Mobile Layout - Single Column */}
         <main className="max-w-lg mx-auto px-4 py-4">
           <div className="space-y-4">
-            <Stories stories={stories.length > 0 ? stories : mockStories} />
+            <Stories stories={stories.length > 0 ? stories : mockStories} onCreateStory={handleCreateStory} />
             <CreatePost onCreatePost={handleCreatePost} />
             
             {loading ? (
