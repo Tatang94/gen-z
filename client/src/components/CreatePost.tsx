@@ -352,7 +352,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
 
           <button
             type="submit"
-            disabled={!content.trim() || isUploading}
+            disabled={(!content.trim() && !selectedImage && !selectedMusic) || isUploading}
             className="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300 text-sm"
           >
             {isUploading ? 'Mengupload...' : 'Kirim'}
