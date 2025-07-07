@@ -57,7 +57,10 @@ app.use((req, res, next) => {
     }
   } else {
     console.log("Using SQLite database");
-    const { storage } = await import("./storage");
+    const { db, initializeDatabase } = await import("./sqlite-db");
+    await initializeDatabase();
+    const { DatabaseStorage } = await import("./storage");
+    const storage = new DatabaseStorage(db);
     (global as any).storage = storage;
   }
 
