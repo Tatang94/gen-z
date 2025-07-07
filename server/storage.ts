@@ -1,5 +1,4 @@
 import { users, posts, comments, stories, type User, type Post, type Comment, type Story, type InsertUser, type InsertPost, type InsertComment, type InsertStory } from "@shared/schema";
-import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -24,9 +23,15 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private db: any;
+
+  constructor(db: any) {
+    this.db = db;
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     try {
-      const [user] = await db.select().from(users).where(eq(users.id, id));
+      const [user] = await this.db.select().from(users).where(eq(users.id, id));
       return user || undefined;
     } catch (error) {
       console.warn('Database query failed:', error);
@@ -35,12 +40,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await this.db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
+    const [user] = await this.db
       .insert(users)
       .values(insertUser)
       .returning();
@@ -48,7 +53,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]> {
-    const postsWithUsers = await db.query.posts.findMany({
+    const postsWithUsers = await this.db.query.posts.findMany({
       with: {
         user: true,
         comments: {
@@ -65,7 +70,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPost(insertPost: InsertPost): Promise<Post> {
-    const [post] = await db
+    const [post] = await this.db
       .insert(posts)
       .values(insertPost)
       .returning();
@@ -73,7 +78,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
-    const [comment] = await db
+    const [comment] = await this.db
       .insert(comments)
       .values(insertComment)
       .returning();
@@ -81,7 +86,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getStories(): Promise<(Story & { user: User })[]> {
-    const storiesWithUsers = await db.query.stories.findMany({
+    const storiesWithUsers = await this.db.query.stories.findMany({
       with: {
         user: true,
       },
@@ -92,7 +97,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStory(insertStory: InsertStory): Promise<Story> {
-    const [story] = await db
+    const [story] = await this.db
       .insert(stories)
       .values(insertStory)
       .returning();
@@ -102,13 +107,13 @@ export class DatabaseStorage implements IStorage {
   async togglePostLike(postId: number): Promise<{ likes: number; isLiked: boolean }> {
     // For simplicity, we'll just increment the like count
     // In a real app, you'd track individual user likes in a separate table
-    const [post] = await db.select().from(posts).where(eq(posts.id, postId));
+    const [post] = await this.db.select().from(posts).where(eq(posts.id, postId));
     if (!post) {
       throw new Error('Post not found');
     }
 
     const newLikes = (post.likes || 0) + 1;
-    await db
+    await this.db
       .update(posts)
       .set({ likes: newLikes })
       .where(eq(posts.id, postId));
@@ -117,13 +122,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async sharePost(postId: number): Promise<{ shares: number }> {
-    const [post] = await db.select().from(posts).where(eq(posts.id, postId));
+    const [post] = await this.db.select().from(posts).where(eq(posts.id, postId));
     if (!post) {
       throw new Error('Post not found');
     }
 
     const newShares = (post.shares || 0) + 1;
-    await db
+    await this.db
       .update(posts)
       .set({ shares: newShares })
       .where(eq(posts.id, postId));
@@ -132,13 +137,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async followUser(userId: number): Promise<{ followers: number }> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    const [user] = await this.db.select().from(users).where(eq(users.id, userId));
     if (!user) {
       throw new Error('User not found');
     }
 
     const newFollowers = (user.followers || 0) + 1;
-    await db
+    await this.db
       .update(users)
       .set({ followers: newFollowers })
       .where(eq(users.id, userId));
@@ -195,7 +200,11 @@ class MemStorage implements IStorage {
   }
 
   async getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]> {
-    return this.posts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return this.posts.sort((a, b) => {
+      const dateA = a.timestamp ? new Date(a.timestamp) : new Date(0);
+      const dateB = b.timestamp ? new Date(b.timestamp) : new Date(0);
+      return dateB.getTime() - dateA.getTime();
+    });
   }
 
   async createPost(insertPost: InsertPost): Promise<Post> {

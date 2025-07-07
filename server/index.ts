@@ -44,10 +44,9 @@ app.use((req, res, next) => {
   // Initialize database
   if (process.env.DATABASE_URL) {
     try {
-      const { initializeDatabase } = await import("./database");
-      const { PostgreSQLStorage } = await import("./pg-storage");
-      const { pool } = await initializeDatabase();
-      const storage = new PostgreSQLStorage(pool);
+      const { db } = await import("./db");
+      const { DatabaseStorage } = await import("./storage");
+      const storage = new DatabaseStorage(db);
       (global as any).storage = storage;
       console.log("✅ Using PostgreSQL database");
     } catch (error: any) {
