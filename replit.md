@@ -183,4 +183,5 @@ Changelog:
 
 ```
 Preferred communication style: Simple, everyday language.
+Language: Indonesian (Bahasa Indonesia)
 ```
