@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, ThumbsUp, Play, Pause, Volume2, Flag, UserMinus, Copy, ExternalLink } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, ThumbsUp, Play, Pause, Volume2, Flag, UserMinus, Copy, ExternalLink, Trash2 } from 'lucide-react';
 import { Post as PostType } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
@@ -98,6 +98,32 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
                 >
                   <UserMinus size={16} />
                   <span>Sembunyikan</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    if (confirm('Hapus postingan ini? Tindakan ini tidak dapat dibatalkan.')) {
+                      try {
+                        const response = await fetch(`/api/posts/${post.id}`, {
+                          method: 'DELETE',
+                        });
+                        
+                        if (response.ok) {
+                          alert('Postingan berhasil dihapus');
+                          window.location.reload(); // Refresh page to update posts
+                        } else {
+                          alert('Gagal menghapus postingan');
+                        }
+                      } catch (error) {
+                        console.error('Error deleting post:', error);
+                        alert('Gagal menghapus postingan');
+                      }
+                    }
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600 border-t border-gray-200 dark:border-gray-600"
+                >
+                  <Trash2 size={16} />
+                  <span>Hapus postingan</span>
                 </button>
               </div>
             )}

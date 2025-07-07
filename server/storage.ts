@@ -11,6 +11,7 @@ export interface IStorage {
   // Posts
   getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]>;
   createPost(post: InsertPost): Promise<Post>;
+  deletePost(postId: number): Promise<void>;
   togglePostLike(postId: number): Promise<{ likes: number; isLiked: boolean }>;
   sharePost(postId: number): Promise<{ shares: number }>;
   
@@ -75,6 +76,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertPost)
       .returning();
     return post;
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    await this.db.delete(posts).where(eq(posts.id, postId));
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
@@ -230,6 +235,13 @@ class MemStorage implements IStorage {
     this.posts.push(fullPost);
     user.postsCount = (user.postsCount || 0) + 1;
     return post;
+  }
+
+  async deletePost(postId: number): Promise<void> {
+    const postIndex = this.posts.findIndex(p => p.id === postId);
+    if (postIndex > -1) {
+      this.posts.splice(postIndex, 1);
+    }
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {

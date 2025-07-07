@@ -119,6 +119,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete a post
+  app.delete("/api/posts/:id", async (req, res) => {
+    try {
+      const storage = getStorage();
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+      
+      const postId = parseInt(req.params.id);
+      await storage.deletePost(postId);
+      res.status(200).json({ message: "Post deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+
   // Like a post
   app.post("/api/posts/:id/like", async (req, res) => {
     try {
