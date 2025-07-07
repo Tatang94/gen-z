@@ -264,7 +264,7 @@ const HomePage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {posts.map(post => (
+                {Array.isArray(posts) && posts.length > 0 ? posts.map(post => (
                   <Post
                     key={post.id}
                     post={post}
@@ -273,7 +273,11 @@ const HomePage: React.FC = () => {
                     onFollow={handleFollow}
                     onComment={handleComment}
                   />
-                ))}
+                )) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Tidak ada postingan untuk ditampilkan</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

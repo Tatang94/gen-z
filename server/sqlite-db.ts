@@ -8,6 +8,7 @@ export const db = drizzle(sqlite, { schema });
 
 // Initialize tables and sample data
 export async function initializeDatabase() {
+  console.log('Initializing SQLite database...');
   // Create tables
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -30,6 +31,7 @@ export async function initializeDatabase() {
       user_id INTEGER NOT NULL,
       content TEXT NOT NULL,
       image TEXT,
+      music TEXT,
       timestamp TEXT DEFAULT '2024-01-01T00:00:00.000Z',
       likes INTEGER DEFAULT 0,
       shares INTEGER DEFAULT 0,
