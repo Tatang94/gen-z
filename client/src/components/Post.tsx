@@ -54,7 +54,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
               <p className="text-gray-500 dark:text-gray-400 text-xs">{formatTimeAgo(post.timestamp)} • 🌐</p>
             </div>
           </div>
-          <div className="relative" ref={menuRef}>
+          <div className="relative z-10" ref={menuRef}>
             <button 
               onClick={() => setShowMoreMenu(!showMoreMenu)}
               className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -63,14 +63,14 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
             </button>
             
             {showMoreMenu && (
-              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 py-1">
+              <div className="absolute right-0 top-8 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-[9999] py-2 max-h-80 overflow-y-auto" style={{position: 'fixed', right: '20px', top: '60px'}}>
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.origin + '/post/' + post.id);
                     alert('Link postingan disalin!');
                     setShowMoreMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm"
                 >
                   <Copy size={16} />
                   <span>Salin link</span>
@@ -82,7 +82,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
                     }
                     setShowMoreMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600 border-t border-gray-200 dark:border-gray-600"
                 >
                   <Flag size={16} />
                   <span>Laporkan</span>
@@ -94,7 +94,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
                     }
                     setShowMoreMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-orange-600"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-orange-600 border-t border-gray-200 dark:border-gray-600"
                 >
                   <UserMinus size={16} />
                   <span>Sembunyikan</span>
@@ -120,7 +120,7 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
                     }
                     setShowMoreMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600 border-t border-gray-200 dark:border-gray-600"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600 border-t border-gray-200 dark:border-gray-600 font-medium"
                 >
                   <Trash2 size={16} />
                   <span>Hapus postingan</span>
