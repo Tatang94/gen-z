@@ -26,8 +26,12 @@ import {
 
 export default function MorePage() {
   const [, setLocation] = useLocation();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+  const [notifications, setNotifications] = useState(() => {
+    return localStorage.getItem('notifications') !== 'false';
+  });
   const [showModal, setShowModal] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -35,9 +39,28 @@ export default function MorePage() {
   const [showAccountManager, setShowAccountManager] = useState(false);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('darkMode', (!isDarkMode).toString());
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    
+    // Show feedback
+    const message = newDarkMode ? 'Mode gelap diaktifkan' : 'Mode terang diaktifkan';
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-black text-white px-4 py-2 rounded-lg z-50 transition-opacity';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 2000);
   };
 
   const handleEditProfile = () => {
@@ -49,7 +72,8 @@ export default function MorePage() {
   };
 
   const handleSaved = () => {
-    setLocation('/profile');
+    // Show saved posts modal
+    setShowModal('saved');
   };
 
   const handleArchive = () => {
@@ -65,8 +89,33 @@ export default function MorePage() {
   };
 
   const handleNotifications = () => {
-    setNotifications(!notifications);
-    localStorage.setItem('notifications', (!notifications).toString());
+    const newNotifications = !notifications;
+    setNotifications(newNotifications);
+    localStorage.setItem('notifications', newNotifications.toString());
+    
+    // Show feedback
+    const message = newNotifications ? 'Notifikasi diaktifkan' : 'Notifikasi dinonaktifkan';
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-black text-white px-4 py-2 rounded-lg z-50 transition-opacity';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 2000);
+    
+    // Simulate requesting notification permission
+    if (newNotifications && 'Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification('GenZ Social', {
+            body: 'Notifikasi berhasil diaktifkan!',
+            icon: '/favicon.ico'
+          });
+        }
+      });
+    }
   };
 
   const handlePrivacy = () => {
@@ -86,7 +135,35 @@ export default function MorePage() {
   };
 
   const handleDownloadData = () => {
-    setShowModal('downloadData');
+    // Create a mock data file for download
+    const userData = {
+      profile: {
+        username: 'sarah_chen',
+        displayName: 'Sarah Chen',
+        email: 'sarah@example.com',
+        joinDate: '2024-01-01',
+        postsCount: 42,
+        followers: 128,
+        following: 89
+      },
+      posts: [],
+      comments: [],
+      exportDate: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(userData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `genz_social_data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    alert('Data Anda telah berhasil diunduh!');
   };
 
   const handleShare = () => {
@@ -256,6 +333,7 @@ export default function MorePage() {
                 {showModal === 'archive' && 'Arsip'}
                 {showModal === 'closeFriends' && 'Teman Dekat'}
                 {showModal === 'favorites' && 'Favorit'}
+                {showModal === 'saved' && 'Postingan Tersimpan'}
                 {showModal === 'privacy' && 'Privasi & Keamanan'}
                 {showModal === 'settings' && 'Pengaturan Umum'}
                 {showModal === 'help' && 'Pusat Bantuan'}
@@ -275,12 +353,37 @@ export default function MorePage() {
               {showModal === 'activity' && (
                 <div>
                   <p>Lihat semua aktivitas Anda di GenZ Social:</p>
-                  <ul className="mt-3 space-y-2">
-                    <li>• Postingan yang disukai</li>
-                    <li>• Komentar yang dibuat</li>
-                    <li>• Profil yang dikunjungi</li>
-                    <li>• Pencarian terbaru</li>
-                  </ul>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Aktivitas Terbaru</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Postingan disukai</span>
+                          <span className="text-blue-600">23 hari ini</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Komentar dibuat</span>
+                          <span className="text-blue-600">8 hari ini</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Profil dikunjungi</span>
+                          <span className="text-blue-600">12 hari ini</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Pencarian dilakukan</span>
+                          <span className="text-blue-600">15 hari ini</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">Pencarian Terbaru</h4>
+                      <div className="space-y-1 text-sm">
+                        <div>• "resep viral tiktok"</div>
+                        <div>• "outfit casual 2025"</div>
+                        <div>• "tips fotografi"</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
@@ -298,10 +401,52 @@ export default function MorePage() {
                 </div>
               )}
               
+              {showModal === 'saved' && (
+                <div>
+                  <p>Postingan yang telah Anda simpan untuk dibaca nanti.</p>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">SC</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Tips fotografi untuk Gen Z</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">2 hari yang lalu</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">JD</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Resep masakan viral TikTok</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">1 minggu yang lalu</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {showModal === 'favorites' && (
                 <div>
                   <p>Postingan dan konten favorit Anda akan disimpan di sini untuk akses mudah.</p>
-                  <p className="mt-3 text-sm">Belum ada konten favorit.</p>
+                  <div className="mt-4 space-y-3">
+                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">⭐</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Playlist musik favorit bulan ini</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">Ditandai 3 hari yang lalu</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
@@ -368,12 +513,35 @@ export default function MorePage() {
                   <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <p className="text-sm font-mono break-all">{window.location.origin}</p>
                   </div>
-                  <button
-                    onClick={() => navigator.clipboard.writeText(window.location.origin)}
-                    className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg w-full"
-                  >
-                    Salin Link
-                  </button>
+                  <div className="mt-4 space-y-2">
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(window.location.origin);
+                        alert('Link berhasil disalin!');
+                      }}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Salin Link
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = `Ayo join GenZ Social! Platform media sosial terbaru dan terkeren untuk generasi Z. ${window.location.origin}`;
+                        if (navigator.share) {
+                          navigator.share({
+                            title: 'GenZ Social',
+                            text: text,
+                            url: window.location.origin
+                          });
+                        } else {
+                          navigator.clipboard.writeText(text);
+                          alert('Pesan berhasil disalin! Bagikan ke media sosial lain.');
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Bagikan Sekarang
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
