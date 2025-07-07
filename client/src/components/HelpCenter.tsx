@@ -192,23 +192,23 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="flex">
+          <div className="flex flex-col lg:flex-row">
             {/* Categories Sidebar */}
-            <div className="w-80 border-r border-gray-200 dark:border-gray-700 p-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+            <div className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700 p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
               <div className="mb-6">
                 <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   Kategori Bantuan
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Pilih kategori untuk bantuan spesifik</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 lg:gap-3">
                 {categories.map((category) => {
                   const Icon = category.icon;
                   return (
                     <button
                       key={category.name}
                       onClick={() => setSelectedCategory(category.name)}
-                      className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                      className={`group relative overflow-hidden rounded-lg lg:rounded-xl p-2 lg:p-4 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                         selectedCategory === category.name
                           ? 'ring-2 ring-blue-500 shadow-lg transform scale-105'
                           : 'hover:shadow-md'
@@ -217,14 +217,15 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
                       <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-90`}></div>
                       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
                       <div className="relative z-10 text-center">
-                        <div className="w-8 h-8 mx-auto mb-2 flex items-center justify-center">
-                          <Icon size={20} className="text-white drop-shadow-sm" />
+                        <div className="w-6 h-6 lg:w-8 lg:h-8 mx-auto mb-1 lg:mb-2 flex items-center justify-center">
+                          <Icon size={16} className="lg:hidden text-white drop-shadow-sm" />
+                          <Icon size={20} className="hidden lg:block text-white drop-shadow-sm" />
                         </div>
-                        <div className="text-2xl mb-1">{category.bgPattern}</div>
+                        <div className="text-lg lg:text-2xl mb-1">{category.bgPattern}</div>
                         <span className="text-xs font-semibold text-white drop-shadow-sm">{category.name}</span>
                       </div>
                       {selectedCategory === category.name && (
-                        <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
+                        <div className="absolute top-1 right-1 lg:top-2 lg:right-2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
                       )}
                     </button>
                   );
@@ -232,19 +233,20 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
               </div>
 
               {/* Quick Actions */}
-              <div className="mt-8">
-                <h4 className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              <div className="mt-6 lg:mt-8">
+                <h4 className="text-base lg:text-lg font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent mb-3 lg:mb-4">
                   🚀 Bantuan Langsung
                 </h4>
                 <div className="space-y-3">
                   <button
                     onClick={() => setShowContactForm(true)}
-                    className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                    className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-lg lg:rounded-xl p-3 lg:p-4 transition-all duration-300 hover:shadow-lg hover:scale-105"
                   >
                     <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
                     <div className="relative flex items-center space-x-3 text-white">
-                      <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                        <MessageCircle size={18} />
+                      <div className="w-7 h-7 lg:w-8 lg:h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                        <MessageCircle size={16} className="lg:hidden" />
+                        <MessageCircle size={18} className="hidden lg:block" />
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-sm">Chat dengan Support</div>
@@ -253,19 +255,21 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
                     </div>
                   </button>
                   
-                  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50">
+                  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg lg:rounded-xl p-3 lg:p-4 border border-gray-200/50 dark:border-gray-700/50">
                     <div className="space-y-2">
                       <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-                        <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                          <Mail size={12} className="text-white" />
+                        <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                          <Mail size={10} className="lg:hidden text-white" />
+                          <Mail size={12} className="hidden lg:block text-white" />
                         </div>
-                        <span className="text-sm font-medium">help@genz.social</span>
+                        <span className="text-xs lg:text-sm font-medium">help@genz.social</span>
                       </div>
                       <div className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
-                        <div className="w-6 h-6 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
-                          <Phone size={12} className="text-white" />
+                        <div className="w-5 h-5 lg:w-6 lg:h-6 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
+                          <Phone size={10} className="lg:hidden text-white" />
+                          <Phone size={12} className="hidden lg:block text-white" />
                         </div>
-                        <span className="text-sm font-medium">+62 21 1234 5678</span>
+                        <span className="text-xs lg:text-sm font-medium">+62 21 1234 5678</span>
                       </div>
                     </div>
                   </div>
@@ -274,14 +278,15 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
             </div>
 
             {/* FAQ Content */}
-            <div className="flex-1 p-8 bg-gradient-to-br from-white/80 to-blue-50/80 dark:from-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
-              <div className="mb-8">
+            <div className="flex-1 p-4 lg:p-8 bg-gradient-to-br from-white/80 to-blue-50/80 dark:from-gray-900/80 dark:to-gray-800/80 backdrop-blur-sm">
+              <div className="mb-6 lg:mb-8">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <BookOpen size={20} className="text-white" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg lg:rounded-xl flex items-center justify-center">
+                    <BookOpen size={16} className="lg:hidden text-white" />
+                    <BookOpen size={20} className="hidden lg:block text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 dark:from-white dark:to-blue-300 bg-clip-text text-transparent">
+                    <h3 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 dark:from-white dark:to-blue-300 bg-clip-text text-transparent">
                       FAQ & Bantuan
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm">
@@ -304,17 +309,17 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                   {filteredFAQs.map((faq, index) => (
                     <div
                       key={faq.id}
-                      className="group relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
+                      className="group relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-lg lg:rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <button
                         onClick={() => toggleExpanded(faq.id)}
-                        className="relative w-full px-6 py-5 text-left transition-all duration-300 flex items-center justify-between group-hover:bg-white/50 dark:group-hover:bg-gray-800/50"
+                        className="relative w-full px-4 py-4 lg:px-6 lg:py-5 text-left transition-all duration-300 flex items-center justify-between group-hover:bg-white/50 dark:group-hover:bg-gray-800/50"
                       >
                         <div className="flex-1 pr-4">
                           <div className="flex items-center space-x-3 mb-2">
@@ -323,25 +328,30 @@ export default function HelpCenter({ isOpen, onClose }: HelpCenterProps) {
                               {faq.category}
                             </span>
                           </div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white text-base leading-relaxed">
+                          <h4 className="font-semibold text-gray-900 dark:text-white text-sm lg:text-base leading-relaxed">
                             {faq.question}
                           </h4>
                         </div>
-                        <div className={`flex-shrink-0 p-2 rounded-full transition-all duration-300 ${
+                        <div className={`flex-shrink-0 p-1.5 lg:p-2 rounded-full transition-all duration-300 ${
                           expandedItems.includes(faq.id) 
                             ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' 
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-500 group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
                         }`}>
                           {expandedItems.includes(faq.id) ? (
-                            <ChevronUp size={20} />
+                            <ChevronUp size={18} className="lg:hidden" />
                           ) : (
-                            <ChevronDown size={20} />
+                            <ChevronDown size={18} className="lg:hidden" />
+                          )}
+                          {expandedItems.includes(faq.id) ? (
+                            <ChevronUp size={20} className="hidden lg:block" />
+                          ) : (
+                            <ChevronDown size={20} className="hidden lg:block" />
                           )}
                         </div>
                       </button>
                       {expandedItems.includes(faq.id) && (
                         <div className="relative border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20">
-                          <div className="px-6 py-5">
+                          <div className="px-4 py-4 lg:px-6 lg:py-5">
                             <div className="flex items-start space-x-3">
                               <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
                                 <span className="text-white text-sm">💡</span>

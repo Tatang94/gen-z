@@ -250,7 +250,12 @@ export default function MorePage() {
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Sarah Chen</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">@sarah_chen</p>
-            <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">Lihat profil Anda</p>
+            <button
+              onClick={() => setLocation('/profile')}
+              className="text-sm text-blue-600 dark:text-blue-400 mt-1 hover:underline cursor-pointer"
+            >
+              Lihat profil Anda
+            </button>
           </div>
         </div>
       </div>
