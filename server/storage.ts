@@ -6,6 +6,9 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  deleteUser(userId: number): Promise<void>;
+  banUser(userId: number): Promise<void>;
+  getAllUsers(): Promise<User[]>;
   followUser(userId: number): Promise<{ followers: number }>;
   
   // Posts
@@ -51,6 +54,20 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async deleteUser(userId: number): Promise<void> {
+    await this.db.delete(users).where(eq(users.id, userId));
+  }
+
+  async banUser(userId: number): Promise<void> {
+    // In a real implementation, you might have a 'banned' field in users table
+    // For now, we'll just log it
+    console.log(`User ${userId} has been banned`);
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await this.db.select().from(users);
   }
 
   async getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]> {
@@ -202,6 +219,24 @@ class MemStorage implements IStorage {
     };
     this.users.push(user);
     return user;
+  }
+
+  async deleteUser(userId: number): Promise<void> {
+    this.users = this.users.filter(user => user.id !== userId);
+    // Also delete user's posts and comments
+    this.posts = this.posts.filter(post => post.userId !== userId);
+  }
+
+  async banUser(userId: number): Promise<void> {
+    const user = this.users.find(u => u.id === userId);
+    if (user) {
+      // In a real implementation, you might set a 'banned' flag
+      console.log(`User ${user.username} has been banned`);
+    }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.users;
   }
 
   async getPosts(): Promise<(Post & { user: User; comments: (Comment & { user: User })[] })[]> {

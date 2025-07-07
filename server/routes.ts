@@ -82,6 +82,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete user (Admin only)
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const storage = getStorage();
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      await storage.deleteUser(userId);
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // Ban user (Admin only)
+  app.post("/api/users/:id/ban", async (req, res) => {
+    try {
+      const storage = getStorage();
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+      
+      const userId = parseInt(req.params.id);
+      await storage.banUser(userId);
+      res.status(200).json({ message: "User banned successfully" });
+    } catch (error) {
+      console.error("Error banning user:", error);
+      res.status(500).json({ error: "Failed to ban user" });
+    }
+  });
+
   // Get all posts with user info and comments
   app.get("/api/posts", async (req, res) => {
     try {

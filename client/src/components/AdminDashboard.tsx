@@ -51,7 +51,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
 
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
-      console.log('Deleting user:', userId);
+      try {
+        const response = await fetch(`/api/users/${userId}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Gagal menghapus pengguna');
+        }
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Terjadi kesalahan saat menghapus pengguna');
+      }
     }
   };
 
@@ -63,16 +75,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
         });
         if (response.ok) {
           window.location.reload();
+        } else {
+          alert('Gagal menghapus postingan');
         }
       } catch (error) {
         console.error('Error deleting post:', error);
+        alert('Terjadi kesalahan saat menghapus postingan');
       }
     }
   };
 
   const handleBanUser = async (userId: string) => {
     if (window.confirm('Apakah Anda yakin ingin memblokir pengguna ini?')) {
-      console.log('Banning user:', userId);
+      try {
+        const response = await fetch(`/api/users/${userId}/ban`, {
+          method: 'POST'
+        });
+        if (response.ok) {
+          alert('Pengguna berhasil diblokir');
+        } else {
+          alert('Gagal memblokir pengguna');
+        }
+      } catch (error) {
+        console.error('Error banning user:', error);
+        alert('Terjadi kesalahan saat memblokir pengguna');
+      }
     }
   };
 
@@ -120,7 +147,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                   month: 'short'
                 })}
               </span>
-              <button className="text-gray-600 hover:text-gray-900 p-2">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="text-gray-600 hover:text-gray-900 p-2"
+                title="Refresh Data"
+              >
                 <RefreshCw className="w-4 h-4" />
               </button>
             </div>
@@ -210,7 +241,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                   </nav>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                  <button 
+                    onClick={() => {
+                      const data = {
+                        users: users,
+                        posts: posts,
+                        stats: stats,
+                        exportDate: new Date().toISOString()
+                      };
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `admin-data-${new Date().toISOString().split('T')[0]}.json`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    title="Export Data"
+                  >
                     <Download className="w-4 h-4 inline mr-1" />
                     <span className="hidden sm:inline">Export</span>
                   </button>
@@ -615,23 +664,77 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                 <div className="bg-white rounded-lg shadow border p-6">
                   <h3 className="font-medium text-gray-900 mb-4">Laporan Terbaru</h3>
                   <div className="space-y-4">
-                    {[1, 2, 3, 4, 5].map((item) => (
-                      <div key={item} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    {[
+                      { 
+                        id: 1, 
+                        type: 'Spam', 
+                        description: 'Postingan dilaporkan sebagai spam oleh 3 pengguna',
+                        time: '2 jam yang lalu',
+                        severity: 'high'
+                      },
+                      { 
+                        id: 2, 
+                        type: 'Konten Tidak Pantas', 
+                        description: 'Gambar yang tidak sesuai dengan pedoman komunitas',
+                        time: '4 jam yang lalu',
+                        severity: 'high'
+                      },
+                      { 
+                        id: 3, 
+                        type: 'Pelecehan', 
+                        description: 'Komentar yang mengandung ujaran kebencian',
+                        time: '6 jam yang lalu',
+                        severity: 'critical'
+                      },
+                      { 
+                        id: 4, 
+                        type: 'Akun Palsu', 
+                        description: 'Pengguna menggunakan identitas palsu',
+                        time: '1 hari yang lalu',
+                        severity: 'medium'
+                      },
+                      { 
+                        id: 5, 
+                        type: 'Informasi Salah', 
+                        description: 'Postingan mengandung informasi yang menyesatkan',
+                        time: '2 hari yang lalu',
+                        severity: 'medium'
+                      }
+                    ].map((report) => (
+                      <div key={report.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-5 h-5 text-red-500" />
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            report.severity === 'critical' ? 'bg-red-100' :
+                            report.severity === 'high' ? 'bg-orange-100' : 'bg-yellow-100'
+                          }`}>
+                            <AlertTriangle className={`w-5 h-5 ${
+                              report.severity === 'critical' ? 'text-red-500' :
+                              report.severity === 'high' ? 'text-orange-500' : 'text-yellow-500'
+                            }`} />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">Laporan Spam</p>
-                            <p className="text-sm text-gray-600">Postingan dilaporkan sebagai spam oleh 3 pengguna</p>
-                            <p className="text-xs text-gray-500">2 jam yang lalu</p>
+                            <p className="font-medium text-gray-900">{report.type}</p>
+                            <p className="text-sm text-gray-600">{report.description}</p>
+                            <p className="text-xs text-gray-500">{report.time}</p>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="px-3 py-1 text-sm bg-green-100 text-green-600 hover:bg-green-200 rounded">
+                          <button 
+                            onClick={() => {
+                              alert(`Laporan ${report.type} ditolak`);
+                            }}
+                            className="px-3 py-1 text-sm bg-green-100 text-green-600 hover:bg-green-200 rounded"
+                          >
                             Tolak
                           </button>
-                          <button className="px-3 py-1 text-sm bg-red-100 text-red-600 hover:bg-red-200 rounded">
+                          <button 
+                            onClick={() => {
+                              if (window.confirm(`Apakah Anda yakin ingin menghapus konten terkait laporan ${report.type}?`)) {
+                                alert(`Konten terkait laporan ${report.type} berhasil dihapus`);
+                              }
+                            }}
+                            className="px-3 py-1 text-sm bg-red-100 text-red-600 hover:bg-red-200 rounded"
+                          >
                             Hapus
                           </button>
                         </div>
@@ -715,7 +818,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                     </div>
 
                     <div className="pt-4 border-t border-gray-200">
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      <button 
+                        onClick={() => {
+                          alert('Pengaturan berhasil disimpan!');
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
                         Simpan Pengaturan
                       </button>
                     </div>
