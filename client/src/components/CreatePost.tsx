@@ -166,7 +166,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    // Allow posting if there's content, image, or music
+    if (!content.trim() && !selectedImage && !selectedMusic) return;
 
     setIsUploading(true);
     try {
@@ -175,7 +176,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onCreatePost }) => {
         imageUrl = await uploadImage(selectedImage);
       }
 
-      onCreatePost(content, imageUrl || undefined, selectedMusic || undefined);
+      onCreatePost(content || 'Berbagi musik', imageUrl || undefined, selectedMusic || undefined);
       setContent('');
       setSelectedImage(null);
       setImagePreview('');

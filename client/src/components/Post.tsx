@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, ThumbsUp } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, ThumbsUp, Play, Pause, Volume2, Flag, UserMinus, Copy, ExternalLink } from 'lucide-react';
 import { Post as PostType } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
@@ -14,6 +14,22 @@ interface PostProps {
 const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMoreMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-4">
@@ -38,14 +54,135 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
               <p className="text-gray-500 dark:text-gray-400 text-xs">{formatTimeAgo(post.timestamp)} • 🌐</p>
             </div>
           </div>
-          <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-            <MoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-          </button>
+          <div className="relative" ref={menuRef}>
+            <button 
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <MoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            </button>
+            
+            {showMoreMenu && (
+              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 py-1">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.origin + '/post/' + post.id);
+                    alert('Link postingan disalin!');
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm"
+                >
+                  <Copy size={16} />
+                  <span>Salin link</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Laporkan postingan ini?')) {
+                      alert('Postingan telah dilaporkan');
+                    }
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-red-600"
+                >
+                  <Flag size={16} />
+                  <span>Laporkan</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('Sembunyikan postingan dari ' + post.user.displayName + '?')) {
+                      alert('Postingan disembunyikan');
+                    }
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-sm text-orange-600"
+                >
+                  <UserMinus size={16} />
+                  <span>Sembunyikan</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Post Content */}
         <div className="mt-2">
-          <p className="text-gray-900 dark:text-white text-sm leading-relaxed">{post.content}</p>
+          {post.content && (
+            <p className="text-gray-900 dark:text-white text-sm leading-relaxed">{post.content}</p>
+          )}
+          
+          {/* Music Player */}
+          {(post as any).music && (
+            <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <img
+                    src={(post as any).music.image || `https://via.placeholder.com/60x60/8B5CF6/white?text=%E2%99%AA`}
+                    alt="Album cover"
+                    className="w-12 h-12 rounded-lg object-cover shadow-md"
+                  />
+                  <button
+                    onClick={() => {
+                      const audio = audioRef.current;
+                      if (audio) {
+                        if (isPlaying) {
+                          audio.pause();
+                        } else {
+                          audio.play().catch(() => {
+                            // Handle autoplay restrictions or invalid URLs
+                            alert('Tidak dapat memutar audio ini');
+                          });
+                        }
+                        setIsPlaying(!isPlaying);
+                      } else {
+                        alert('Preview audio tidak tersedia');
+                      }
+                    }}
+                    className="absolute inset-0 bg-black bg-opacity-40 rounded-lg flex items-center justify-center text-white hover:bg-opacity-60 transition-all duration-200 group"
+                  >
+                    <div className="bg-white bg-opacity-20 rounded-full p-1 group-hover:bg-opacity-30 transition-all">
+                      {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    </div>
+                  </button>
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                    {(post as any).music.name}
+                  </div>
+                  <div className="text-gray-600 dark:text-gray-400 text-xs truncate">
+                    {(post as any).music.artist}
+                  </div>
+                  <div className="text-gray-500 dark:text-gray-500 text-xs truncate">
+                    {(post as any).music.album}
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Volume2 size={16} className="text-purple-600 dark:text-purple-400" />
+                  {(post as any).music.external_urls?.spotify && (
+                    <a
+                      href={(post as any).music.external_urls.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 rounded"
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  )}
+                </div>
+              </div>
+              
+              {/* Hidden Audio Element */}
+              {(post as any).music.preview_url && (
+                <audio
+                  ref={audioRef}
+                  src={(post as any).music.preview_url}
+                  onEnded={() => setIsPlaying(false)}
+                  onError={() => setIsPlaying(false)}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
