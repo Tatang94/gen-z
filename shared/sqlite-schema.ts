@@ -23,6 +23,7 @@ export const posts = sqliteTable("posts", {
   userId: integer("user_id").notNull().references(() => users.id),
   content: text("content").notNull(),
   image: text("image"),
+  music: text("music"), // JSON string for music data
   timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
   likes: integer("likes").default(0),
   shares: integer("shares").default(0),
@@ -91,6 +92,7 @@ export const insertPostSchema = createInsertSchema(posts).pick({
   userId: true,
   content: true,
   image: true,
+  music: true,
 });
 
 export const insertCommentSchema = createInsertSchema(comments).pick({

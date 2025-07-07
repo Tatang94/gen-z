@@ -217,6 +217,7 @@ class MemStorage implements IStorage {
       shares: 0,
       timestamp: new Date(),
       image: insertPost.image || null,
+      music: insertPost.music || null,
       ...insertPost
     };
 

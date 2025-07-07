@@ -111,15 +111,20 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
           )}
           
           {/* Music Player */}
-          {(post as any).music && (
+          {((post as any).music && typeof (post as any).music === 'string' ? JSON.parse((post as any).music) : (post as any).music) && (
             <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200 dark:border-purple-700">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <img
-                    src={(post as any).music.image || `https://via.placeholder.com/60x60/8B5CF6/white?text=%E2%99%AA`}
-                    alt="Album cover"
-                    className="w-12 h-12 rounded-lg object-cover shadow-md"
-                  />
+                  {(() => {
+                    const musicData = typeof (post as any).music === 'string' ? JSON.parse((post as any).music) : (post as any).music;
+                    return (
+                      <img
+                        src={musicData.image || `https://via.placeholder.com/60x60/8B5CF6/white?text=%E2%99%AA`}
+                        alt="Album cover"
+                        className="w-12 h-12 rounded-lg object-cover shadow-md"
+                      />
+                    );
+                  })()}
                   <button
                     onClick={() => {
                       const audio = audioRef.current;
@@ -146,41 +151,54 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 dark:text-white text-sm truncate">
-                    {(post as any).music.name}
-                  </div>
-                  <div className="text-gray-600 dark:text-gray-400 text-xs truncate">
-                    {(post as any).music.artist}
-                  </div>
-                  <div className="text-gray-500 dark:text-gray-500 text-xs truncate">
-                    {(post as any).music.album}
-                  </div>
+                  {(() => {
+                    const musicData = typeof (post as any).music === 'string' ? JSON.parse((post as any).music) : (post as any).music;
+                    return (
+                      <>
+                        <div className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                          {musicData.name}
+                        </div>
+                        <div className="text-gray-600 dark:text-gray-400 text-xs truncate">
+                          {musicData.artist}
+                        </div>
+                        <div className="text-gray-500 dark:text-gray-500 text-xs truncate">
+                          {musicData.album}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
                 
                 <div className="flex items-center space-x-2">
                   <Volume2 size={16} className="text-purple-600 dark:text-purple-400" />
-                  {(post as any).music.external_urls?.spotify && (
-                    <a
-                      href={(post as any).music.external_urls.spotify}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 rounded"
-                    >
-                      <ExternalLink size={14} />
-                    </a>
-                  )}
+                  {(() => {
+                    const musicData = typeof (post as any).music === 'string' ? JSON.parse((post as any).music) : (post as any).music;
+                    return musicData.external_urls?.spotify && (
+                      <a
+                        href={musicData.external_urls.spotify}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20 rounded"
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    );
+                  })()}
                 </div>
               </div>
               
               {/* Hidden Audio Element */}
-              {(post as any).music.preview_url && (
-                <audio
-                  ref={audioRef}
-                  src={(post as any).music.preview_url}
-                  onEnded={() => setIsPlaying(false)}
-                  onError={() => setIsPlaying(false)}
-                />
-              )}
+              {(() => {
+                const musicData = typeof (post as any).music === 'string' ? JSON.parse((post as any).music) : (post as any).music;
+                return musicData.preview_url && (
+                  <audio
+                    ref={audioRef}
+                    src={musicData.preview_url}
+                    onEnded={() => setIsPlaying(false)}
+                    onError={() => setIsPlaying(false)}
+                  />
+                );
+              })()}
             </div>
           )}
         </div>

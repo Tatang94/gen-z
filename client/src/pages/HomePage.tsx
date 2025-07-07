@@ -95,7 +95,7 @@ const HomePage: React.FC = () => {
     console.log('Follow user:', userId);
   };
 
-  const handleCreatePost = async (content: string, image?: string) => {
+  const handleCreatePost = async (content: string, image?: string, music?: any) => {
     try {
       const response = await fetch('/api/posts', {
         method: 'POST',
@@ -106,6 +106,7 @@ const HomePage: React.FC = () => {
           userId: 1,
           content,
           image,
+          music: music ? JSON.stringify(music) : undefined,
           timestamp: new Date().toISOString(),
           likes: 0,
           shares: 0,
