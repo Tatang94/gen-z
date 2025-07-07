@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, ArrowLeft, Trash2, Eye, Shield, TrendingUp, Activity, AlertTriangle, Settings, Ban, CheckCircle, XCircle, Search, Filter, Download, RefreshCw, Home, BarChart3, UserCheck, Mail, Calendar, Globe } from 'lucide-react';
+import { Users, FileText, ArrowLeft, Trash2, Eye, Shield, TrendingUp, Activity, AlertTriangle, Settings, Ban, CheckCircle, XCircle, Search, Filter, Download, RefreshCw, Home, BarChart3, UserCheck, Mail, Calendar, Globe, Menu, X } from 'lucide-react';
 import { User, Post } from '../types';
 
 interface AdminDashboardProps {
@@ -12,6 +12,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalPosts: 0,
@@ -85,33 +86,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* AdminLTE Style Header */}
+      {/* Mobile Header */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              >
+                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              
               <button
                 onClick={onBackToHome}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="text-sm">Kembali</span>
+                <span className="text-sm hidden sm:inline">Kembali</span>
               </button>
-              <div className="h-6 w-px bg-gray-300" />
-              <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
+              
+              <div className="h-6 w-px bg-gray-300 hidden sm:block" />
+              <h1 className="text-lg sm:text-xl font-bold text-gray-800">Admin Panel</h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs sm:text-sm text-gray-600 hidden lg:inline">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 {new Date().toLocaleDateString('id-ID', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                  weekday: 'short', 
+                  day: 'numeric',
+                  month: 'short'
                 })}
               </span>
-              <button className="text-gray-600 hover:text-gray-900">
+              <button className="text-gray-600 hover:text-gray-900 p-2">
                 <RefreshCw className="w-4 h-4" />
               </button>
             </div>
@@ -119,9 +128,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex relative">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* AdminLTE Style Sidebar */}
-        <aside className="bg-gray-900 w-64 min-h-screen shadow-lg">
+        <aside className={`
+          bg-gray-900 w-64 min-h-screen shadow-lg z-50 transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:translate-x-0 md:static fixed inset-y-0 left-0
+        `}>
           {/* Brand Logo */}
           <div className="bg-gray-800 p-4 border-b border-gray-700">
             <div className="flex items-center">
@@ -171,13 +192,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
         </aside>
 
         {/* Content Wrapper */}
-        <div className="flex-1">
+        <div className="flex-1 md:ml-0 w-full">
           {/* Content Header */}
           <section className="bg-white border-b">
             <div className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-800">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
                     {tabs.find(tab => tab.id === activeTab)?.label || 'Dashboard'}
                   </h1>
                   <nav className="text-sm text-gray-600 mt-1">
@@ -191,7 +212,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                 <div className="flex space-x-2">
                   <button className="px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
                     <Download className="w-4 h-4 inline mr-1" />
-                    Export
+                    <span className="hidden sm:inline">Export</span>
                   </button>
                 </div>
               </div>
@@ -199,55 +220,55 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
           </section>
 
           {/* Main Content */}
-          <section className="p-6">
+          <section className="p-3 sm:p-6">
             {/* Dashboard Tab */}
             {activeTab === 'dashboard' && (
               <div className="space-y-6">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg text-white p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg text-white p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                        <div className="text-blue-100">Total Pengguna</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.totalUsers}</div>
+                        <div className="text-blue-100 text-sm sm:text-base">Total Pengguna</div>
                       </div>
-                      <Users className="w-12 h-12 text-blue-200" />
+                      <Users className="w-8 h-8 sm:w-12 sm:h-12 text-blue-200" />
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg text-white p-6">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg text-white p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-2xl font-bold">{stats.totalPosts}</div>
-                        <div className="text-green-100">Total Postingan</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.totalPosts}</div>
+                        <div className="text-green-100 text-sm sm:text-base">Total Postingan</div>
                       </div>
-                      <FileText className="w-12 h-12 text-green-200" />
+                      <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-green-200" />
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg text-white p-6">
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg text-white p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-2xl font-bold">{stats.activeUsers}</div>
-                        <div className="text-purple-100">Pengguna Aktif</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.activeUsers}</div>
+                        <div className="text-purple-100 text-sm sm:text-base">Pengguna Aktif</div>
                       </div>
-                      <Activity className="w-12 h-12 text-purple-200" />
+                      <Activity className="w-8 h-8 sm:w-12 sm:h-12 text-purple-200" />
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-lg text-white p-6">
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-lg text-white p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-2xl font-bold">{stats.reportedPosts}</div>
-                        <div className="text-orange-100">Laporan</div>
+                        <div className="text-xl sm:text-2xl font-bold">{stats.reportedPosts}</div>
+                        <div className="text-orange-100 text-sm sm:text-base">Laporan</div>
                       </div>
-                      <AlertTriangle className="w-12 h-12 text-orange-200" />
+                      <AlertTriangle className="w-8 h-8 sm:w-12 sm:h-12 text-orange-200" />
                     </div>
                   </div>
                 </div>
 
                 {/* Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                   <div className="bg-white rounded-lg shadow border">
                     <div className="border-b px-6 py-4">
                       <h3 className="text-lg font-semibold text-gray-800">Aktivitas Terbaru</h3>
@@ -302,7 +323,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
             {activeTab === 'users' && (
               <div className="space-y-6">
                 {/* Search and Filter */}
-                <div className="bg-white rounded-lg shadow border p-6">
+                <div className="bg-white rounded-lg shadow border p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1 relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -311,7 +332,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                         placeholder="Cari pengguna..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       />
                     </div>
                     <div className="flex items-center space-x-2">
@@ -319,9 +340,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       >
-                        <option value="all">Semua Pengguna</option>
+                        <option value="all">Semua</option>
                         <option value="verified">Terverifikasi</option>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
@@ -332,29 +353,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
 
                 {/* Users Table */}
                 <div className="bg-white rounded-lg shadow border overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200">
+                  <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-semibold text-gray-900">Manajemen Pengguna ({filteredUsers.length})</h2>
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto min-w-full">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Pengguna
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                             Username
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                             Followers
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             Bergabung
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Aksi
                           </th>
                         </tr>
@@ -362,49 +383,54 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToHome, users, po
                       <tbody className="bg-white divide-y divide-gray-200">
                         {filteredUsers.slice(0, 20).map((user) => (
                           <tr key={user.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt="" />
-                                <div className="ml-4">
+                                <img className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover" src={user.avatar} alt="" />
+                                <div className="ml-2 sm:ml-4">
                                   <div className="text-sm font-medium text-gray-900 flex items-center">
-                                    {user.displayName}
-                                    {user.isVerified && <CheckCircle className="w-4 h-4 text-blue-500 ml-1" />}
+                                    <span className="truncate max-w-24 sm:max-w-none">{user.displayName}</span>
+                                    {user.isVerified && <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 ml-1" />}
                                   </div>
-                                  <div className="text-sm text-gray-500 truncate max-w-xs">{user.bio}</div>
+                                  <div className="text-xs sm:text-sm text-gray-500 truncate max-w-20 sm:max-w-xs sm:block hidden">
+                                    {user.bio}
+                                  </div>
+                                  <div className="text-xs text-gray-500 sm:hidden">
+                                    @{user.username}
+                                  </div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                               @{user.username}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 user.isOnline ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                               }`}>
                                 {user.isOnline ? 'Online' : 'Offline'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                               {user.followers.toLocaleString()}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                               {new Date(user.joinDate).toLocaleDateString('id-ID')}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-2">
+                            <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <div className="flex space-x-1 sm:space-x-2">
                                 <button
                                   onClick={() => handleBanUser(user.id)}
-                                  className="text-orange-600 hover:text-orange-900"
+                                  className="text-orange-600 hover:text-orange-900 p-1"
                                   title="Blokir Pengguna"
                                 >
-                                  <Ban className="w-4 h-4" />
+                                  <Ban className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteUser(user.id)}
-                                  className="text-red-600 hover:text-red-900"
+                                  className="text-red-600 hover:text-red-900 p-1"
                                   title="Hapus Pengguna"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                               </div>
                             </td>
