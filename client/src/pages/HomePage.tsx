@@ -79,15 +79,28 @@ const HomePage: React.FC = () => {
       const response = await fetch(`/api/posts/${postId}/share`, {
         method: 'POST',
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to share post');
+      }
+      
       const data = await response.json();
       
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { ...post, shares: data.shares, isShared: true }
-          : post
-      ));
+      // Update posts state with new share count
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, shares: data.shares, isShared: true }
+            : post
+        )
+      );
+      
+      // Show success message
+      console.log('Post shared successfully!');
+      
     } catch (error) {
       console.error('Error sharing post:', error);
+      alert('Gagal membagikan postingan');
     }
   };
 

@@ -279,11 +279,13 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
           <button
             onClick={() => onShare(post.id)}
             className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
-              post.isShared ? 'text-green-500' : 'text-gray-500 hover:bg-gray-100'
+              post.isShared ? 'text-green-500 bg-green-50' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
-            <Share2 className="w-4 h-4" />
-            <span className="text-xs font-medium">Bagikan</span>
+            <Share2 className={`w-4 h-4 ${post.isShared ? 'fill-current' : ''}`} />
+            <span className="text-xs font-medium">
+              {post.isShared ? 'Dibagikan' : 'Bagikan'}
+            </span>
           </button>
         </div>
       </div>
