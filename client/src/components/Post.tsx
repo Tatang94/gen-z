@@ -16,8 +16,10 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
   const [commentText, setCommentText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const shareModalRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -25,11 +27,51 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMoreMenu(false);
       }
+      if (shareModalRef.current && !shareModalRef.current.contains(event.target as Node)) {
+        setShowShareModal(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  const shareToWhatsApp = () => {
+    const text = `Lihat postingan ini di GenZ: ${post.content}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setShowShareModal(false);
+    onShare(post.id);
+  };
+
+  const shareToTelegram = () => {
+    const text = `Lihat postingan ini di GenZ: ${post.content}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setShowShareModal(false);
+    onShare(post.id);
+  };
+
+  const shareToTwitter = () => {
+    const text = `Lihat postingan ini di GenZ: ${post.content}`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setShowShareModal(false);
+    onShare(post.id);
+  };
+
+  const copyLink = () => {
+    const postUrl = `${window.location.origin}/post/${post.id}`;
+    navigator.clipboard.writeText(postUrl).then(() => {
+      alert('Link berhasil disalin!');
+      setShowShareModal(false);
+      onShare(post.id);
+    });
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-4">
@@ -277,15 +319,11 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
           </button>
           
           <button
-            onClick={() => onShare(post.id)}
-            className={`flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg transition-colors ${
-              post.isShared ? 'text-green-500 bg-green-50' : 'text-gray-500 hover:bg-gray-100'
-            }`}
+            onClick={handleShare}
+            className="flex-1 flex items-center justify-center space-x-1 py-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
           >
-            <Share2 className={`w-4 h-4 ${post.isShared ? 'fill-current' : ''}`} />
-            <span className="text-xs font-medium">
-              {post.isShared ? 'Dibagikan' : 'Bagikan'}
-            </span>
+            <Share2 className="w-4 h-4" />
+            <span className="text-xs font-medium">Bagikan</span>
           </button>
         </div>
       </div>
@@ -354,6 +392,68 @@ const Post: React.FC<PostProps> = ({ post, onLike, onShare, onFollow, onComment 
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div ref={shareModalRef} className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Bagikan Postingan</h3>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* WhatsApp */}
+              <button
+                onClick={shareToWhatsApp}
+                className="flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+              >
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">W</span>
+                </div>
+                <span className="text-green-700 font-medium">WhatsApp</span>
+              </button>
+
+              {/* Telegram */}
+              <button
+                onClick={shareToTelegram}
+                className="flex items-center space-x-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              >
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">T</span>
+                </div>
+                <span className="text-blue-700 font-medium">Telegram</span>
+              </button>
+
+              {/* Twitter */}
+              <button
+                onClick={shareToTwitter}
+                className="flex items-center space-x-3 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors"
+              >
+                <div className="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">X</span>
+                </div>
+                <span className="text-sky-700 font-medium">Twitter</span>
+              </button>
+
+              {/* Copy Link */}
+              <button
+                onClick={copyLink}
+                className="flex items-center space-x-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                  <Copy className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-gray-700 font-medium">Copy Link</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium transition-colors"
+            >
+              Batal
+            </button>
+          </div>
         </div>
       )}
     </div>
