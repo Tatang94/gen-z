@@ -16,11 +16,14 @@ $request = json_decode(file_get_contents('php://input'), true);
 try {
     switch ($method) {
         case 'GET':
-            // Get all stories with user info
+            // Get all stories - BEBAS TANPA KETERKAITAN  
             $stmt = $pdo->prepare("
-                SELECT s.*, u.username, u.display_name, u.avatar, u.is_verified
+                SELECT s.*, 
+                       COALESCE((SELECT username FROM users WHERE id = s.user_id), 'user_' || s.user_id) as username,
+                       COALESCE((SELECT display_name FROM users WHERE id = s.user_id), 'User ' || s.user_id) as display_name,
+                       COALESCE((SELECT avatar FROM users WHERE id = s.user_id), '') as avatar,
+                       COALESCE((SELECT is_verified FROM users WHERE id = s.user_id), 0) as is_verified
                 FROM stories s 
-                LEFT JOIN users u ON s.user_id = u.id 
                 WHERE s.created_at >= datetime('now', '-24 hours')
                 ORDER BY s.created_at DESC
             ");
@@ -66,11 +69,14 @@ try {
             
             $storyId = $pdo->lastInsertId();
             
-            // Get the created story with user info
+            // Get the created story - BEBAS TANPA KETERKAITAN
             $stmt = $pdo->prepare("
-                SELECT s.*, u.username, u.display_name, u.avatar, u.is_verified
+                SELECT s.*, 
+                       COALESCE((SELECT username FROM users WHERE id = s.user_id), 'user_' || s.user_id) as username,
+                       COALESCE((SELECT display_name FROM users WHERE id = s.user_id), 'User ' || s.user_id) as display_name,
+                       COALESCE((SELECT avatar FROM users WHERE id = s.user_id), '') as avatar,
+                       COALESCE((SELECT is_verified FROM users WHERE id = s.user_id), 0) as is_verified
                 FROM stories s 
-                LEFT JOIN users u ON s.user_id = u.id 
                 WHERE s.id = ?
             ");
             $stmt->execute([$storyId]);

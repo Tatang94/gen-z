@@ -17,7 +17,7 @@ try {
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         
-        // Create tables if they don't exist
+        // Create tables if they don't exist - BEBAS TANPA KETERKAITAN
         $pdo->exec("CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username VARCHAR(50) UNIQUE NOT NULL,
@@ -39,52 +39,44 @@ try {
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
+            user_id INTEGER DEFAULT 1,
             content TEXT NOT NULL,
             image VARCHAR(255) DEFAULT '',
             music_data TEXT DEFAULT '',
             likes INTEGER DEFAULT 0,
             comments_count INTEGER DEFAULT 0,
             shares INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            post_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
+            post_id INTEGER DEFAULT 1,
+            user_id INTEGER DEFAULT 1,
             content TEXT NOT NULL,
             likes INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (post_id) REFERENCES posts(id),
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS stories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
+            user_id INTEGER DEFAULT 1,
             image VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS follows (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            follower_id INTEGER NOT NULL,
-            following_id INTEGER NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (follower_id) REFERENCES users(id),
-            FOREIGN KEY (following_id) REFERENCES users(id)
+            follower_id INTEGER DEFAULT 1,
+            following_id INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS post_likes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            post_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (post_id) REFERENCES posts(id),
-            FOREIGN KEY (user_id) REFERENCES users(id)
+            post_id INTEGER DEFAULT 1,
+            user_id INTEGER DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
         
     } catch(PDOException $e) {

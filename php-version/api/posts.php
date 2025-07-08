@@ -16,14 +16,15 @@ $request = json_decode(file_get_contents('php://input'), true);
 try {
     switch ($method) {
         case 'GET':
-            // Get all posts with user info and comments
+            // Get all posts - BEBAS TANPA KETERKAITAN
             $stmt = $pdo->prepare("
-                SELECT p.*, u.username, u.display_name, u.avatar, u.is_verified,
-                       COUNT(c.id) as comments_count
+                SELECT p.*, 
+                       COALESCE((SELECT username FROM users WHERE id = p.user_id), 'user_' || p.user_id) as username,
+                       COALESCE((SELECT display_name FROM users WHERE id = p.user_id), 'User ' || p.user_id) as display_name,
+                       COALESCE((SELECT avatar FROM users WHERE id = p.user_id), '') as avatar,
+                       COALESCE((SELECT is_verified FROM users WHERE id = p.user_id), 0) as is_verified,
+                       COALESCE((SELECT COUNT(*) FROM comments WHERE post_id = p.id), 0) as comments_count
                 FROM posts p 
-                LEFT JOIN users u ON p.user_id = u.id 
-                LEFT JOIN comments c ON p.id = c.post_id
-                GROUP BY p.id
                 ORDER BY p.created_at DESC
             ");
             $stmt->execute();
@@ -80,11 +81,14 @@ try {
             $stmt = $pdo->prepare("UPDATE users SET posts_count = posts_count + 1 WHERE id = ?");
             $stmt->execute([$userId]);
             
-            // Get the created post with user info
+            // Get the created post - BEBAS TANPA KETERKAITAN
             $stmt = $pdo->prepare("
-                SELECT p.*, u.username, u.display_name, u.avatar, u.is_verified
+                SELECT p.*, 
+                       COALESCE((SELECT username FROM users WHERE id = p.user_id), 'user_' || p.user_id) as username,
+                       COALESCE((SELECT display_name FROM users WHERE id = p.user_id), 'User ' || p.user_id) as display_name,
+                       COALESCE((SELECT avatar FROM users WHERE id = p.user_id), '') as avatar,
+                       COALESCE((SELECT is_verified FROM users WHERE id = p.user_id), 0) as is_verified
                 FROM posts p 
-                LEFT JOIN users u ON p.user_id = u.id 
                 WHERE p.id = ?
             ");
             $stmt->execute([$postId]);
