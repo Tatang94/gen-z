@@ -343,4 +343,23 @@ class MemStorage implements IStorage {
 }
 
 // Use SQLite storage for now to ensure compatibility
-export const storage = new MemStorage();
+// Initialize storage based on available database
+let storage: IStorage;
+
+async function initializeStorage() {
+  try {
+    // Try to use database storage first
+    const { db } = await import("./sqlite-db");
+    await (await import("./sqlite-db")).initializeDatabase();
+    storage = new DatabaseStorage(db);
+    console.log("Using SQLite database storage");
+  } catch (error) {
+    console.warn("Database not available, falling back to memory storage:", error);
+    storage = new MemStorage();
+  }
+}
+
+// Initialize storage
+initializeStorage();
+
+export { storage };
