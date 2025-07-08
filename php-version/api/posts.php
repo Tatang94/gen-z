@@ -59,6 +59,27 @@ try {
             break;
             
         case 'POST':
+            // Handle share action
+            if (isset($request['action']) && $request['action'] === 'share') {
+                $postId = $request['post_id'] ?? 0;
+                
+                if (!$postId) {
+                    throw new Exception('Post ID is required for share action');
+                }
+                
+                // Increment share count
+                $stmt = $pdo->prepare("UPDATE posts SET shares = shares + 1 WHERE id = ?");
+                $stmt->execute([$postId]);
+                
+                // Get updated share count
+                $stmt = $pdo->prepare("SELECT shares FROM posts WHERE id = ?");
+                $stmt->execute([$postId]);
+                $result = $stmt->fetch();
+                
+                echo json_encode(['shares' => $result['shares'] ?? 0]);
+                break;
+            }
+            
             // Create new post
             if (!isset($request['content']) || empty(trim($request['content']))) {
                 throw new Exception('Content is required');

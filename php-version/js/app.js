@@ -52,6 +52,9 @@ class GenZApp {
 
         // Story creation
         this.setupStoryCreation();
+        
+        // Share functionality
+        this.setupShareFeature();
     }
 
     setupMobileNavigation() {
@@ -218,9 +221,9 @@ class GenZApp {
                             <i data-lucide="message-circle" class="w-5 h-5"></i>
                             <span>${post.comments?.length || 0}</span>
                         </button>
-                        <button class="post-action-btn share-btn ${post.isShared ? 'shared' : ''}" data-post-id="${post.id}">
-                            <i data-lucide="share" class="w-5 h-5"></i>
-                            <span>${post.shares || 0}</span>
+                        <button class="post-action-btn share-btn" data-post-id="${post.id}" data-post-content="${encodeURIComponent(post.content || 'Lihat postingan ini di GenZ!')}">
+                            <i data-lucide="share-2" class="w-5 h-5"></i>
+                            <span>Bagikan</span>
                         </button>
                     </div>
                 </div>
@@ -534,11 +537,162 @@ class GenZApp {
             }, 300);
         }, 3000);
     }
+    
+    setupShareFeature() {
+        // Set up share button event listeners
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.share-btn')) {
+                e.preventDefault();
+                const shareBtn = e.target.closest('.share-btn');
+                const postId = shareBtn.dataset.postId;
+                const postContent = decodeURIComponent(shareBtn.dataset.postContent || 'Lihat postingan ini di GenZ!');
+                this.showShareModal(postId, postContent);
+            }
+        });
+    }
+    
+    showShareModal(postId, postContent) {
+        const modalHTML = `
+            <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-900">Bagikan Postingan</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <!-- WhatsApp -->
+                        <button onclick="app.shareToWhatsApp('${postContent}', '${postId}')" class="flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">W</span>
+                            </div>
+                            <span class="text-green-700 font-medium">WhatsApp</span>
+                        </button>
+
+                        <!-- Telegram -->
+                        <button onclick="app.shareToTelegram('${postContent}', '${postId}')" class="flex items-center space-x-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">T</span>
+                            </div>
+                            <span class="text-blue-700 font-medium">Telegram</span>
+                        </button>
+
+                        <!-- Twitter -->
+                        <button onclick="app.shareToTwitter('${postContent}', '${postId}')" class="flex items-center space-x-3 p-3 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">X</span>
+                            </div>
+                            <span class="text-sky-700 font-medium">Twitter</span>
+                        </button>
+
+                        <!-- Copy Link -->
+                        <button onclick="app.copyPostLink('${postId}')" class="flex items-center space-x-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="copy" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <span class="text-gray-700 font-medium">Copy Link</span>
+                        </button>
+                    </div>
+
+                    <button onclick="app.closeShareModal()" class="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 font-medium transition-colors">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Initialize lucide icons for the modal
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+    
+    shareToWhatsApp(postContent, postId) {
+        const text = `Lihat postingan ini di GenZ: ${postContent}`;
+        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+        this.closeShareModal();
+        this.incrementShareCount(postId);
+    }
+    
+    shareToTelegram(postContent, postId) {
+        const text = `Lihat postingan ini di GenZ: ${postContent}`;
+        const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+        this.closeShareModal();
+        this.incrementShareCount(postId);
+    }
+    
+    shareToTwitter(postContent, postId) {
+        const text = `Lihat postingan ini di GenZ: ${postContent}`;
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+        this.closeShareModal();
+        this.incrementShareCount(postId);
+    }
+    
+    copyPostLink(postId) {
+        const postUrl = `${window.location.origin}/post/${postId}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(postUrl).then(() => {
+                this.showSuccess('Link berhasil disalin!');
+                this.closeShareModal();
+                this.incrementShareCount(postId);
+            });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = postUrl;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                this.showSuccess('Link berhasil disalin!');
+            } catch (err) {
+                this.showError('Gagal menyalin link');
+            }
+            document.body.removeChild(textArea);
+            this.closeShareModal();
+            this.incrementShareCount(postId);
+        }
+    }
+    
+    closeShareModal() {
+        const modal = document.getElementById('share-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
+    async incrementShareCount(postId) {
+        try {
+            const response = await fetch('api/posts.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'share',
+                    post_id: postId
+                })
+            });
+            
+            if (response.ok) {
+                console.log('Post shared successfully!');
+                this.loadPosts(); // Refresh posts to show updated share count
+            }
+        } catch (error) {
+            console.error('Error sharing post:', error);
+        }
+    }
 }
+
+// Global app instance
+let app;
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new GenZApp();
+    app = new GenZApp();
 });
 
 // Handle offline/online status

@@ -20,7 +20,7 @@ export const users = sqliteTable("users", {
 
 export const posts = sqliteTable("posts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull(),
   content: text("content").notNull(),
   image: text("image"),
   music: text("music"), // JSON string for music data
@@ -31,8 +31,8 @@ export const posts = sqliteTable("posts", {
 
 export const comments = sqliteTable("comments", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  postId: integer("post_id").notNull().references(() => posts.id),
-  userId: integer("user_id").notNull().references(() => users.id),
+  postId: integer("post_id").notNull(),
+  userId: integer("user_id").notNull(),
   content: text("content").notNull(),
   timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
   likes: integer("likes").default(0),
@@ -40,7 +40,7 @@ export const comments = sqliteTable("comments", {
 
 export const stories = sqliteTable("stories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: integer("user_id").notNull(),
   image: text("image").notNull(),
   timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
   isViewed: integer("is_viewed", { mode: 'boolean' }).default(false),
