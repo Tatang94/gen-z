@@ -5,19 +5,43 @@ import CreatePost from '../components/CreatePost';
 import Post from '../components/Post';
 import { mockUsers, mockStories } from '../data/mockData';
 import { Post as PostType, User, Story } from '../types';
+import { 
+  initializeLocalStorage, 
+  getCurrentUser, 
+  getPosts, 
+  getStories, 
+  createPost as createLocalPost,
+  createStory as createLocalStory,
+  likePost as likeLocalPost,
+  sharePost as shareLocalPost
+} from '../utils/localStorageAPI';
 
 const HomePage: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser] = useState<User>(mockUsers[0]);
+  const [currentUser] = useState<User>(getCurrentUser());
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    fetchPosts();
-    fetchStories();
+    initializeLocalStorage();
+    loadData();
   }, []);
+
+  const loadData = () => {
+    try {
+      setPosts(getPosts());
+      setStories(getStories());
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback to API if available
+      fetchPosts();
+      fetchStories();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,48 +83,66 @@ const HomePage: React.FC = () => {
 
   const handleLike = async (postId: string) => {
     try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-      
+      // Try localStorage first
+      const result = likeLocalPost(postId);
       setPosts(posts.map(post => 
         post.id === postId 
-          ? { ...post, likes: data.likes, isLiked: data.isLiked }
+          ? { ...post, likes: result.likes, isLiked: result.isLiked }
           : post
       ));
     } catch (error) {
-      console.error('Error liking post:', error);
+      // Fallback to API
+      try {
+        const response = await fetch(`/api/posts/${postId}/like`, {
+          method: 'POST',
+        });
+        const data = await response.json();
+        
+        setPosts(posts.map(post => 
+          post.id === postId 
+            ? { ...post, likes: data.likes, isLiked: data.isLiked }
+            : post
+        ));
+      } catch (apiError) {
+        console.error('Error liking post:', apiError);
+      }
     }
   };
 
   const handleShare = async (postId: string) => {
     try {
-      const response = await fetch(`/api/posts/${postId}/share`, {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to share post');
-      }
-      
-      const data = await response.json();
-      
-      // Update posts state with new share count
+      // Try localStorage first
+      const result = shareLocalPost(postId);
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
-            ? { ...post, shares: data.shares, isShared: true }
+            ? { ...post, shares: result.shares, isShared: true }
             : post
         )
       );
-      
-      // Show success message
-      console.log('Post shared successfully!');
-      
     } catch (error) {
-      console.error('Error sharing post:', error);
-      alert('Gagal membagikan postingan');
+      // Fallback to API
+      try {
+        const response = await fetch(`/api/posts/${postId}/share`, {
+          method: 'POST',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to share post');
+        }
+        
+        const data = await response.json();
+        
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, shares: data.shares, isShared: true }
+              : post
+          )
+        );
+      } catch (apiError) {
+        console.error('Error sharing post:', apiError);
+      }
     }
   };
 
@@ -110,27 +152,36 @@ const HomePage: React.FC = () => {
 
   const handleCreatePost = async (content: string, image?: string, music?: any) => {
     try {
-      const response = await fetch('/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: 1,
-          content,
-          image,
-          music: music ? JSON.stringify(music) : undefined,
-          timestamp: new Date().toISOString(),
-          likes: 0,
-          shares: 0,
-        }),
-      });
+      // Try localStorage first (for Vercel deployment)
+      const newPost = createLocalPost(content, image, music);
+      setPosts([newPost, ...posts]);
       
-      if (response.ok) {
-        fetchPosts();
-      }
+      console.log('Post berhasil dibuat!');
     } catch (error) {
-      console.error('Error creating post:', error);
+      // Fallback to API if available
+      try {
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: 1,
+            content,
+            image,
+            music: music ? JSON.stringify(music) : undefined,
+            timestamp: new Date().toISOString(),
+            likes: 0,
+            shares: 0,
+          }),
+        });
+        
+        if (response.ok) {
+          loadData(); // Refresh with updated data
+        }
+      } catch (apiError) {
+        console.error('Error creating post:', apiError);
+      }
     }
   };
 
@@ -160,20 +211,29 @@ const HomePage: React.FC = () => {
 
   const handleCreateStory = async (imageFile: File) => {
     try {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-      formData.append('userId', '1');
-
-      const response = await fetch('/api/stories', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        fetchStories();
-      }
+      // Try localStorage first (for Vercel deployment)
+      const newStory = await createLocalStory(imageFile);
+      setStories([newStory, ...stories]);
+      
+      console.log('Story berhasil dibuat!');
     } catch (error) {
-      console.error('Error creating story:', error);
+      // Fallback to API if available
+      try {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        formData.append('userId', '1');
+
+        const response = await fetch('/api/stories', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          loadData(); // Refresh with updated data
+        }
+      } catch (apiError) {
+        console.error('Error creating story:', apiError);
+      }
     }
   };
 
