@@ -169,7 +169,7 @@ export const mockStories: Story[] = [
     isViewed: true
   },
   {
-    id: '3',
+    id: '5',
     userId: '3',
     user: mockUsers[2],
     image: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=300',

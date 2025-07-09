@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@shared/schema";
+import { insertPostSchema, insertCommentSchema, insertStorySchema } from "@shared/sqlite-schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -140,11 +140,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Storage not initialized" });
       }
       
+      console.log("Request body:", req.body);
+      console.log("Storage type:", storage.constructor.name);
+      
       const result = insertPostSchema.safeParse(req.body);
       if (!result.success) {
-        return res.status(400).json({ error: "Invalid post data" });
+        console.log("Validation error:", result.error);
+        return res.status(400).json({ error: "Invalid post data", details: result.error.issues });
       }
       
+      console.log("Creating post with data:", result.data);
       const post = await storage.createPost(result.data);
       res.status(201).json(post);
     } catch (error) {
@@ -271,8 +276,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new story with JSON data
+  app.post("/api/stories", async (req, res) => {
+    try {
+      const storage = getStorage();
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+      
+      const { userId, image } = req.body;
+      
+      console.log("Story request body:", req.body);
+      
+      if (!userId || !image) {
+        return res.status(400).json({ error: "User ID and image are required" });
+      }
+      
+      const result = insertStorySchema.safeParse(req.body);
+      if (!result.success) {
+        console.log("Story validation error:", result.error);
+        return res.status(400).json({ error: "Invalid story data", details: result.error.issues });
+      }
+      
+      const story = await storage.createStory(result.data);
+      res.status(201).json(story);
+    } catch (error) {
+      console.error("Error creating story:", error);
+      res.status(500).json({ error: "Failed to create story" });
+    }
+  });
+
   // Create a new story with image upload
-  app.post("/api/stories", upload.single('image'), async (req, res) => {
+  app.post("/api/stories/upload", upload.single('image'), async (req, res) => {
     try {
       const storage = getStorage();
       if (!storage) {

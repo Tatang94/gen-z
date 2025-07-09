@@ -1,4 +1,4 @@
-import { users, posts, comments, stories, type User, type Post, type Comment, type Story, type InsertUser, type InsertPost, type InsertComment, type InsertStory } from "@shared/schema";
+import { users, posts, comments, stories, type User, type Post, type Comment, type Story, type InsertUser, type InsertPost, type InsertComment, type InsertStory } from "@shared/sqlite-schema";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
@@ -90,7 +90,10 @@ export class DatabaseStorage implements IStorage {
   async createPost(insertPost: InsertPost): Promise<Post> {
     const [post] = await this.db
       .insert(posts)
-      .values(insertPost)
+      .values({
+        ...insertPost,
+        timestamp: new Date().toISOString()
+      })
       .returning();
     return post;
   }
@@ -121,7 +124,10 @@ export class DatabaseStorage implements IStorage {
   async createStory(insertStory: InsertStory): Promise<Story> {
     const [story] = await this.db
       .insert(stories)
-      .values(insertStory)
+      .values({
+        ...insertStory,
+        timestamp: new Date().toISOString()
+      })
       .returning();
     return story;
   }
@@ -179,22 +185,174 @@ class MemStorage implements IStorage {
   private users: User[] = [
     {
       id: 1,
-      username: 'sarah_chen',
+      username: 'andi_jakarta',
       password: 'password123',
-      displayName: 'Sarah Chen',
-      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
-      bio: 'Content creator & traveler',
-      followers: 1250,
-      following: 340,
-      postsCount: 85,
+      displayName: 'Andi Pratama',
+      avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Content creator Jakarta 🇮🇩 | Mahasiswa UI | Suka traveling & kuliner',
+      followers: 8750,
+      following: 543,
+      postsCount: 187,
       isVerified: true,
-      joinDate: new Date('2023-01-15'),
+      joinDate: new Date('2023-02-10'),
+      isOnline: true
+    },
+    {
+      id: 2,
+      username: 'sari_bandung',
+      password: 'password123',
+      displayName: 'Sari Indah',
+      avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Photographer 📸 | Bandung vibes | Coffee lover ☕ | Aesthetic enthusiast',
+      followers: 12300,
+      following: 398,
+      postsCount: 234,
+      isVerified: true,
+      joinDate: new Date('2022-11-18'),
+      isOnline: true
+    },
+    {
+      id: 3,
+      username: 'budi_surabaya',
+      password: 'password123',
+      displayName: 'Budi Santoso',
+      avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Entrepreneur muda 💼 | Tech startup | Surabaya | Always learning 📚',
+      followers: 6890,
+      following: 412,
+      postsCount: 156,
+      isVerified: false,
+      joinDate: new Date('2023-04-05'),
+      isOnline: true
+    },
+    {
+      id: 4,
+      username: 'maya_yogya',
+      password: 'password123',
+      displayName: 'Maya Kusuma',
+      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Mahasiswa UGM 🎓 | Art enthusiast 🎨 | Yogyakarta | Traditional meets modern',
+      followers: 5670,
+      following: 289,
+      postsCount: 123,
+      isVerified: false,
+      joinDate: new Date('2023-06-12'),
+      isOnline: false
+    },
+    {
+      id: 5,
+      username: 'rio_bali',
+      password: 'password123',
+      displayName: 'Rio Mahendra',
+      avatar: 'https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=150',
+      bio: 'Surfer 🏄‍♂️ | Bali life | Digital nomad | Sunset chaser 🌅',
+      followers: 9450,
+      following: 356,
+      postsCount: 201,
+      isVerified: true,
+      joinDate: new Date('2022-09-20'),
       isOnline: true
     }
   ];
 
-  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [];
-  private stories: (Story & { user: User })[] = [];
+  private posts: (Post & { user: User; comments: (Comment & { user: User })[] })[] = [
+    {
+      id: 1,
+      userId: 1,
+      content: 'Pagi yang cerah di Jakarta! Sarapan dulu sebelum kuliah 🌅☕ #JakartaLife #MahasiswaUI #Morning',
+      image: 'https://images.pexels.com/photos/1002703/pexels-photo-1002703.jpeg?auto=compress&cs=tinysrgb&w=600',
+      music: null,
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      likes: 156,
+      shares: 8,
+      user: this.users[0],
+      comments: []
+    },
+    {
+      id: 2,
+      userId: 2,
+      content: 'Hunting foto di Dago, Bandung! Cuaca mendukung banget hari ini 📸✨ #BandungVibes #Photography #Dago',
+      image: 'https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=600',
+      music: null,
+      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+      likes: 234,
+      shares: 15,
+      user: this.users[1],
+      comments: []
+    },
+    {
+      id: 3,
+      userId: 3,
+      content: 'Startup life be like... coding sampai tengah malam 💻🚀 #StartupLife #Surabaya #Entrepreneur #TechLife',
+      image: null,
+      music: null,
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      likes: 89,
+      shares: 12,
+      user: this.users[2],
+      comments: []
+    },
+    {
+      id: 4,
+      userId: 4,
+      content: 'Seni batik meets digital art! Bangga sama warisan budaya kita 🇮🇩🎨 #BatikModern #YogyakartaArt #Indonesia',
+      image: 'https://images.pexels.com/photos/1266808/pexels-photo-1266808.jpeg?auto=compress&cs=tinysrgb&w=600',
+      music: null,
+      timestamp: new Date(Date.now() - 7 * 60 * 60 * 1000),
+      likes: 312,
+      shares: 28,
+      user: this.users[3],
+      comments: []
+    },
+    {
+      id: 5,
+      userId: 5,
+      content: 'Sunset surf session di Uluwatu! Life is good di Pulau Dewata 🏄‍♂️🌅 #BaliLife #Surfing #Uluwatu #Paradise',
+      image: 'https://images.pexels.com/photos/390051/surfer-wave-sunset-the-indian-ocean-390051.jpeg?auto=compress&cs=tinysrgb&w=600',
+      music: null,
+      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      likes: 445,
+      shares: 34,
+      user: this.users[4],
+      comments: []
+    }
+  ];
+
+  private stories: (Story & { user: User })[] = [
+    {
+      id: 1,
+      userId: 1,
+      image: 'https://images.pexels.com/photos/1040881/pexels-photo-1040881.jpeg?auto=compress&cs=tinysrgb&w=300',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      isViewed: false,
+      user: this.users[0]
+    },
+    {
+      id: 2,
+      userId: 2,
+      image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=300',
+      timestamp: new Date(Date.now() - 45 * 60 * 1000),
+      isViewed: false,
+      user: this.users[1]
+    },
+    {
+      id: 3,
+      userId: 4,
+      image: 'https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?auto=compress&cs=tinysrgb&w=300',
+      timestamp: new Date(Date.now() - 90 * 60 * 1000),
+      isViewed: false,
+      user: this.users[3]
+    },
+    {
+      id: 4,
+      userId: 5,
+      image: 'https://images.pexels.com/photos/1032653/pexels-photo-1032653.jpeg?auto=compress&cs=tinysrgb&w=300',
+      timestamp: new Date(Date.now() - 120 * 60 * 1000),
+      isViewed: true,
+      user: this.users[4]
+    }
+  ];
+
   private nextId = 10;
 
   async getUser(id: number): Promise<User | undefined> {
@@ -213,7 +371,7 @@ class MemStorage implements IStorage {
       following: 0,
       postsCount: 0,
       isVerified: false,
-      joinDate: new Date(),
+      joinDate: new Date().toISOString(),
       isOnline: true,
       ...insertUser
     };
@@ -255,7 +413,7 @@ class MemStorage implements IStorage {
       id: this.nextId++,
       likes: 0,
       shares: 0,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       image: insertPost.image || null,
       music: insertPost.music || null,
       ...insertPost
@@ -289,7 +447,7 @@ class MemStorage implements IStorage {
     const comment: Comment = {
       id: this.nextId++,
       likes: 0,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       ...insertComment
     };
 
@@ -308,7 +466,7 @@ class MemStorage implements IStorage {
 
     const story: Story = {
       id: this.nextId++,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       isViewed: false,
       ...insertStory
     };
@@ -348,14 +506,13 @@ let storage: IStorage;
 
 async function initializeStorage() {
   try {
-    // Try to use database storage first
-    const { db } = await import("./sqlite-db");
-    await (await import("./sqlite-db")).initializeDatabase();
-    storage = new DatabaseStorage(db);
-    console.log("Using SQLite database storage");
-  } catch (error) {
-    console.warn("Database not available, falling back to memory storage:", error);
+    // Use MemStorage for now to avoid timestamp issues
     storage = new MemStorage();
+    console.log('Using memory storage');
+  } catch (error) {
+    console.error('Storage initialization failed:', error);
+    storage = new MemStorage();
+    console.log('Using memory storage fallback');
   }
 }
 
@@ -363,3 +520,4 @@ async function initializeStorage() {
 initializeStorage();
 
 export { storage };
+export { MemStorage };

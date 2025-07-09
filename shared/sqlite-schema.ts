@@ -24,7 +24,7 @@ export const posts = sqliteTable("posts", {
   content: text("content").notNull(),
   image: text("image"),
   music: text("music"), // JSON string for music data
-  timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
+  timestamp: text("timestamp"),
   likes: integer("likes").default(0),
   shares: integer("shares").default(0),
 });
@@ -34,7 +34,7 @@ export const comments = sqliteTable("comments", {
   postId: integer("post_id").notNull(),
   userId: integer("user_id").notNull(),
   content: text("content").notNull(),
-  timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
+  timestamp: text("timestamp"),
   likes: integer("likes").default(0),
 });
 
@@ -42,7 +42,7 @@ export const stories = sqliteTable("stories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   userId: integer("user_id").notNull(),
   image: text("image").notNull(),
-  timestamp: text("timestamp").default("2024-01-01T00:00:00.000Z"),
+  timestamp: text("timestamp"),
   isViewed: integer("is_viewed", { mode: 'boolean' }).default(false),
 });
 
