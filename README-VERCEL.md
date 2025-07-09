@@ -27,7 +27,21 @@ Vercel akan:
 - 📱 Mobile-friendly
 - 🔒 HTTPS otomatis
 
-### 4. Database untuk Production
+### 4. Solusi Error "functions property cannot be used"
+
+Jika muncul error seperti di screenshot, gunakan salah satu cara ini:
+
+#### Opsi A: Frontend Only (Termudah)
+1. Rename `vercel.json` menjadi `vercel-backup.json`
+2. Rename `vercel-frontend.json` menjadi `vercel.json`
+3. Deploy ulang - aplikasi akan jalan sebagai SPA
+
+#### Opsi B: Full-Stack Deploy
+1. Hapus file `vercel.json`
+2. Biarkan Vercel auto-detect sebagai React app
+3. Backend akan jadi serverless functions
+
+### 5. Database untuk Production
 
 Untuk data persisten, gunakan PostgreSQL gratis:
 
