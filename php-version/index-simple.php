@@ -147,10 +147,99 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
         .hover-scale { transition: transform 0.2s; }
         .hover-scale:hover { transform: scale(1.05); }
+        
+        /* Splash Screen Styles */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+        
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .splash-logo {
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        .splash-tagline {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        .splash-loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Header -->
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-logo">GenZ</div>
+        <div class="splash-tagline">
+            Social Media untuk Generasi Z<br>
+            <span style="font-size: 1rem; opacity: 0.7;">Connecting Indonesia</span>
+        </div>
+        <div class="splash-loader"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <!-- Header -->
     <header class="gradient-bg text-white p-4 sticky top-0 z-50">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <h1 class="text-2xl font-bold">GenZ</h1>
@@ -338,12 +427,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             </div>
         </div>
     </div>
+    </div> <!-- End Main Content -->
 
     <script>
-        // Load posts and stories on page load
+        // Splash Screen Control
         document.addEventListener('DOMContentLoaded', function() {
-            loadPosts();
-            loadStories();
+            // Show splash screen for 2.5 seconds
+            setTimeout(function() {
+                document.getElementById('splashScreen').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('visible');
+                
+                // Load data after splash screen
+                setTimeout(function() {
+                    loadPosts();
+                    loadStories();
+                }, 300);
+            }, 2500);
         });
 
         // Load posts from server

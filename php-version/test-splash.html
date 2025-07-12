@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Splash Screen - GenZ</title>
+    <style>
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+        }
+        
+        .splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .splash-logo {
+            font-size: 4rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+        
+        .splash-tagline {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        .splash-loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .main-content {
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .main-content.visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-logo">GenZ</div>
+        <div class="splash-tagline">
+            Social Media untuk Generasi Z<br>
+            <span style="font-size: 1rem; opacity: 0.7;">Connecting Indonesia</span>
+        </div>
+        <div class="splash-loader"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <h1>Welcome to GenZ Social Media!</h1>
+        <p>Splash screen berhasil ditampilkan!</p>
+        <button onclick="showSplash()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Tampilkan Splash Lagi
+        </button>
+    </div>
+
+    <script>
+        function showSplashScreen() {
+            setTimeout(function() {
+                document.getElementById('splashScreen').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('visible');
+            }, 2500);
+        }
+
+        function showSplash() {
+            document.getElementById('splashScreen').classList.remove('hidden');
+            document.getElementById('mainContent').classList.remove('visible');
+            showSplashScreen();
+        }
+
+        // Show splash on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            showSplashScreen();
+        });
+    </script>
+</body>
+</html>

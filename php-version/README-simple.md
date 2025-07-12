@@ -6,6 +6,7 @@ Versi PHP yang sudah disederhanakan dalam satu file `index-simple.php` dengan fi
 ## Fitur Lengkap
 
 ### Fitur Utama
+- ✅ **Splash Screen** - Animasi loading dengan logo dan tagline menarik
 - ✅ **Feed Posts** - Buat, like, dan lihat postingan
 - ✅ **Stories** - Section untuk cerita (interface siap)
 - ✅ **Responsive Design** - Mobile-first dengan bottom navigation
