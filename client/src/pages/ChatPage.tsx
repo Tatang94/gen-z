@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface ChatMessage {
   id: string;
@@ -18,88 +19,74 @@ interface ChatUser {
   lastSeen?: string;
 }
 
-export default function ChatPage() {
+interface ChatPageProps {
+  currentUser: any;
+}
+
+export default function ChatPage({ currentUser }: ChatPageProps) {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
-  // Mock chat users - in real app, fetch from API
-  const chatUsers: ChatUser[] = [
-    {
-      id: '1',
-      username: 'sarah_chen',
-      displayName: 'Sarah Chen',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      isOnline: true
-    },
-    {
-      id: '2',
-      username: 'alex_dev',
-      displayName: 'Alex Rivera',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      isOnline: false,
-      lastSeen: '2 jam yang lalu'
-    },
-    {
-      id: '3',
-      username: 'luna_photo',
-      displayName: 'Luna Martinez',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      isOnline: true
-    }
-  ];
+  // Fetch chat conversations
+  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
+    queryKey: ['/api/chat/conversations'],
+    refetchInterval: 10000 // Refetch every 10 seconds for real-time updates
+  });
 
-  // Mock messages - in real app, fetch from API
-  const mockMessages: ChatMessage[] = [
-    {
-      id: '1',
-      senderId: '1',
-      content: 'Hai! Gimana kabarnya?',
-      timestamp: '2025-07-03T10:30:00Z',
-      isRead: true
-    },
-    {
-      id: '2',
-      senderId: 'current',
-      content: 'Baik! Lagi ngapain?',
-      timestamp: '2025-07-03T10:31:00Z',
-      isRead: true
-    },
-    {
-      id: '3',
-      senderId: '1',
-      content: 'Lagi kerja nih, project baru 😊',
-      timestamp: '2025-07-03T10:32:00Z',
-      isRead: false
-    }
-  ];
+  // Fetch messages for selected chat
+  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+    queryKey: ['/api/chat/messages', selectedChat],
+    enabled: !!selectedChat,
+    refetchInterval: 3000 // Refetch every 3 seconds for real-time updates
+  });
 
-  useEffect(() => {
-    if (selectedChat) {
-      setMessages(mockMessages);
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ chatId, content }: { chatId, content: string }) => {
+      const response = await fetch('/api/chat/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, content })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/messages', selectedChat] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      setNewMessage('');
     }
-  }, [selectedChat]);
+  });
+
+  // Send message function
+  const sendMessage = () => {
+    if (newMessage.trim() && selectedChat) {
+      sendMessageMutation.mutate({ 
+        chatId: selectedChat, 
+        content: newMessage.trim() 
+      });
+    }
+  };
+
+  // Handle enter key press
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() && selectedChat) {
-      const newMsg: ChatMessage = {
-        id: Date.now().toString(),
-        senderId: 'current',
-        content: newMessage,
-        timestamp: new Date().toISOString(),
-        isRead: false
-      };
-      setMessages(prev => [...prev, newMsg]);
-      setNewMessage('');
-    }
-  };
-
-  const selectedUser = chatUsers.find(u => u.id === selectedChat);
+  const selectedUser = conversations.find(u => u.id === selectedChat);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -111,39 +98,47 @@ export default function ChatPage() {
           </div>
           
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {chatUsers.map((user) => (
-              <div
-                key={user.id}
-                onClick={() => setSelectedChat(user.id)}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <img
-                      src={user.avatar}
-                      alt={user.displayName}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    {user.isOnline && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{user.displayName}</h3>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">10:32</span>
+            {conversationsLoading ? (
+              <div className="p-4 text-center">Loading conversations...</div>
+            ) : (
+              conversations.map((user) => (
+                <div
+                  key={user.id}
+                  onClick={() => setSelectedChat(user.id)}
+                  className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <img
+                        src={user.avatar}
+                        alt={user.displayName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      {user.isOnline && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Lagi kerja nih, project baru 😊</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {user.isOnline ? 'Online' : user.lastSeen}
-                      </span>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{user.displayName}</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(user.lastMessageTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{user.lastMessage}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {user.isOnline ? 'Online' : user.lastSeen}
+                        </span>
+                        {user.unreadCount > 0 && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       ) : (
@@ -193,30 +188,37 @@ export default function ChatPage() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.senderId === 'current' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.senderId === 'current'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-                  }`}
-                >
-                  <p>{message.content}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.senderId === 'current' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {new Date(message.timestamp).toLocaleTimeString('id-ID', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
+            {messagesLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <p className="text-gray-500 dark:text-gray-400 mt-2">Loading messages...</p>
               </div>
-            ))}
+            ) : (
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.senderId === 'current' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                      message.senderId === 'current'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
+                    }`}
+                  >
+                    <p>{message.content}</p>
+                    <p className={`text-xs mt-1 ${
+                      message.senderId === 'current' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {new Date(message.timestamp).toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -227,13 +229,13 @@ export default function ChatPage() {
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyPress={handleKeyPress}
                 placeholder="Ketik pesan..."
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               />
               <button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || sendMessageMutation.isPending}
                 className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send size={20} />

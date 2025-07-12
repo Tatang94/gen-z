@@ -24,7 +24,12 @@ import {
   X
 } from 'lucide-react';
 
-export default function MorePage() {
+interface MorePageProps {
+  currentUser: any;
+  onLogout: () => void;
+}
+
+export default function MorePage({ currentUser, onLogout }: MorePageProps) {
   const [, setLocation] = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
@@ -184,7 +189,7 @@ export default function MorePage() {
 
   const confirmLogout = () => {
     localStorage.clear();
-    setLocation('/');
+    onLogout();
     setShowLogoutConfirm(false);
   };
 

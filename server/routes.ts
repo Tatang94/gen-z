@@ -41,6 +41,63 @@ function getStorage() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const storage = getStorage();
+      
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+
+      const user = await storage.getUserByUsername(username);
+      if (!user || user.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { username, displayName, email, password } = req.body;
+      const storage = getStorage();
+      
+      if (!storage) {
+        return res.status(500).json({ error: "Storage not initialized" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Create new user
+      const newUser = await storage.createUser({
+        username,
+        displayName,
+        email,
+        password,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=6366f1&color=fff&size=150`
+      });
+
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = newUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Get all users
   app.get("/api/users", async (req, res) => {
     try {
@@ -238,6 +295,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Music search endpoint
   app.get("/api/spotify/search", searchMusicTracks);
+
+  // Chat API endpoints
+  app.get("/api/chat/conversations", async (req, res) => {
+    try {
+      // Mock chat users data
+      const chatUsers = [
+        {
+          id: '1',
+          username: 'sarah_chen',
+          displayName: 'Sarah Chen',
+          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          isOnline: true,
+          lastMessage: 'Hai! Gimana kabarnya?',
+          lastMessageTime: '2025-07-12T10:30:00Z',
+          unreadCount: 0
+        },
+        {
+          id: '2',
+          username: 'alex_dev',
+          displayName: 'Alex Rivera',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          isOnline: false,
+          lastSeen: '2 jam yang lalu',
+          lastMessage: 'Oke, nanti kita diskusi lagi ya',
+          lastMessageTime: '2025-07-12T08:15:00Z',
+          unreadCount: 2
+        },
+        {
+          id: '3',
+          username: 'luna_photo',
+          displayName: 'Luna Martinez',
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+          isOnline: true,
+          lastMessage: 'Foto kemarin bagus banget!',
+          lastMessageTime: '2025-07-12T09:45:00Z',
+          unreadCount: 1
+        }
+      ];
+      
+      res.json(chatUsers);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/chat/messages/:chatId", async (req, res) => {
+    try {
+      const { chatId } = req.params;
+      
+      // Mock messages data based on chatId
+      const mockMessages = {
+        '1': [
+          {
+            id: '1',
+            senderId: '1',
+            content: 'Hai! Gimana kabarnya?',
+            timestamp: '2025-07-12T10:30:00Z',
+            isRead: true
+          },
+          {
+            id: '2',
+            senderId: 'current',
+            content: 'Baik! Lagi ngapain?',
+            timestamp: '2025-07-12T10:31:00Z',
+            isRead: true
+          },
+          {
+            id: '3',
+            senderId: '1',
+            content: 'Lagi kerja nih, project baru 😊',
+            timestamp: '2025-07-12T10:32:00Z',
+            isRead: false
+          }
+        ],
+        '2': [
+          {
+            id: '4',
+            senderId: '2',
+            content: 'Hai, ada waktu ngobrol?',
+            timestamp: '2025-07-12T08:10:00Z',
+            isRead: true
+          },
+          {
+            id: '5',
+            senderId: 'current',
+            content: 'Ada, ada apa?',
+            timestamp: '2025-07-12T08:12:00Z',
+            isRead: true
+          },
+          {
+            id: '6',
+            senderId: '2',
+            content: 'Mau tanya soal project kemarin',
+            timestamp: '2025-07-12T08:13:00Z',
+            isRead: false
+          },
+          {
+            id: '7',
+            senderId: '2',
+            content: 'Oke, nanti kita diskusi lagi ya',
+            timestamp: '2025-07-12T08:15:00Z',
+            isRead: false
+          }
+        ],
+        '3': [
+          {
+            id: '8',
+            senderId: '3',
+            content: 'Foto kemarin bagus banget!',
+            timestamp: '2025-07-12T09:45:00Z',
+            isRead: false
+          }
+        ]
+      };
+      
+      const messages = mockMessages[chatId] || [];
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/chat/messages", async (req, res) => {
+    try {
+      const { chatId, content } = req.body;
+      
+      if (!chatId || !content) {
+        return res.status(400).json({ error: "Chat ID and content are required" });
+      }
+      
+      const newMessage = {
+        id: Date.now().toString(),
+        senderId: 'current',
+        content: content,
+        timestamp: new Date().toISOString(),
+        isRead: false
+      };
+      
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ error: "Failed to send message" });
+    }
+  });
 
   // Get all stories
   app.get("/api/stories", async (req, res) => {
