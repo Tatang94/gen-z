@@ -54,11 +54,7 @@ if ($userCount == 0) {
         ('admin', 'Administrator', 'admin@genzsocial.com', '". password_hash('admin123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Admin GenZ Social Media', 0, 0, 0, 1)");
     
     $pdo->exec("INSERT INTO posts (user_id, content, likes) VALUES
-        (1, 'Hari yang indah untuk ngopi sambil coding! ☕ Ada yang mau join?', 24),
-        (2, 'Baru selesai bikin design poster untuk event kampus. Gimana menurut kalian?', 18),
-        (3, 'Sunrise di Malioboro pagi ini cantik banget! 🌅', 31),
-        (4, 'Pantai Sanur pagi ini eksotis sekali! Perfect untuk foto pre-wedding 📸', 45),
-        (5, 'Lagi ngoding project machine learning pakai Python. Seru banget! 🤖', 28)");
+        (1, 'Selamat datang di GenZ Social Media! 🎉', 5)");
 }
 
 // API Handler
@@ -79,6 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         case 'create_post':
             $input = json_decode(file_get_contents('php://input'), true);
             $userId = $_SESSION['user_id'] ?? 1;
+            
+            // Validate input
+            if (empty($input['content']) && empty($input['image']) && empty($input['music'])) {
+                echo json_encode(['success' => false, 'message' => 'Post tidak boleh kosong']);
+                exit;
+            }
+            
             $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, image, music) VALUES (?, ?, ?, ?)");
             $stmt->execute([
                 $userId,
@@ -87,6 +90,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 $input['music'] ?? ''
             ]);
             echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+            exit;
+            
+        case 'upload_image':
+            if (!isset($_FILES['image'])) {
+                echo json_encode(['success' => false, 'message' => 'Tidak ada file yang dipilih']);
+                exit;
+            }
+            
+            $file = $_FILES['image'];
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            
+            if (!in_array($file['type'], $allowedTypes)) {
+                echo json_encode(['success' => false, 'message' => 'Format file tidak didukung']);
+                exit;
+            }
+            
+            if ($file['size'] > 5 * 1024 * 1024) { // 5MB
+                echo json_encode(['success' => false, 'message' => 'Ukuran file terlalu besar (maksimal 5MB)']);
+                exit;
+            }
+            
+            // Create uploads directory if not exists
+            $uploadDir = 'uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $fileName = uniqid() . '.' . $extension;
+            $filePath = $uploadDir . $fileName;
+            
+            if (move_uploaded_file($file['tmp_name'], $filePath)) {
+                echo json_encode(['success' => true, 'url' => $filePath]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Gagal mengupload file']);
+            }
             exit;
             
         case 'delete_post':
@@ -122,7 +161,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             $input = json_decode(file_get_contents('php://input'), true);
             $stmt = $pdo->prepare("UPDATE posts SET likes = likes + 1 WHERE id = ?");
             $stmt->execute([$input['postId']]);
-            echo json_encode(['success' => true]);
+            
+            // Get updated likes count
+            $stmt = $pdo->prepare("SELECT likes FROM posts WHERE id = ?");
+            $stmt->execute([$input['postId']]);
+            $likes = $stmt->fetchColumn();
+            
+            echo json_encode(['success' => true, 'likes' => $likes]);
+            exit;
+            
+        case 'add_comment':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $userId = $_SESSION['user_id'] ?? 1;
+            $postId = $input['postId'] ?? 0;
+            $content = $input['content'] ?? '';
+            
+            if (empty($content)) {
+                echo json_encode(['success' => false, 'message' => 'Komentar tidak boleh kosong']);
+                exit;
+            }
+            
+            // Create comments table if not exists
+            $pdo->exec("CREATE TABLE IF NOT EXISTS comments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )");
+            
+            $stmt = $pdo->prepare("INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)");
+            $stmt->execute([$postId, $userId, $content]);
+            
+            echo json_encode(['success' => true, 'message' => 'Komentar berhasil ditambahkan']);
+            exit;
+            
+        case 'get_comments':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $postId = $input['postId'] ?? 0;
+            
+            $stmt = $pdo->prepare("
+                SELECT c.*, u.username, u.display_name, u.avatar 
+                FROM comments c 
+                JOIN users u ON c.user_id = u.id 
+                WHERE c.post_id = ? 
+                ORDER BY c.created_at ASC
+            ");
+            $stmt->execute([$postId]);
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
             exit;
             
         case 'admin_stats':
@@ -1811,15 +1897,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                             <p class="text-gray-800 mb-4">${post.content}</p>
                             ${post.image ? `<img src="${post.image}" class="w-full rounded-lg mb-4">` : ''}
                             ${musicHtml}
-                            <div class="flex items-center justify-between text-gray-500">
+                            <div class="flex items-center justify-between text-gray-500 mb-4">
                                 <button onclick="likePost(${post.id})" class="flex items-center hover:text-red-500">
                                     <i class="fas fa-heart mr-1"></i>
                                     <span id="likes-${post.id}">${post.likes}</span>
                                 </button>
-                                <button onclick="sharePost(${post.id})" class="flex items-center hover:text-blue-500">
+                                <button onclick="toggleComments(${post.id})" class="flex items-center hover:text-blue-500">
+                                    <i class="fas fa-comment mr-1"></i>
+                                    Komentar
+                                </button>
+                                <button onclick="sharePost(${post.id}, '${post.content}')" class="flex items-center hover:text-green-500">
                                     <i class="fas fa-share mr-1"></i>
                                     Share
                                 </button>
+                            </div>
+                            <div id="commentsSection-${post.id}" class="hidden">
+                                <div id="comments-${post.id}" class="mb-4">
+                                    <!-- Comments will be loaded here -->
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <img src="${post.avatar}" class="w-8 h-8 rounded-full">
+                                    <input type="text" id="commentInput-${post.id}" placeholder="Tulis komentar..." 
+                                           class="flex-1 p-2 border rounded-lg text-sm" 
+                                           onkeypress="if(event.key==='Enter') addComment(${post.id})">
+                                    <button onclick="addComment(${post.id})" class="bg-blue-500 text-white px-3 py-2 rounded-lg text-sm">
+                                        Kirim
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1852,11 +1956,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             }
         }
 
+        // Image upload for create post
+        let selectedImage = null;
+        
+        function selectImage() {
+            document.getElementById('imageUpload').click();
+        }
+        
+        document.getElementById('imageUpload').addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                try {
+                    const response = await fetch('?action=upload_image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        selectedImage = result.url;
+                        document.getElementById('selectedImage').innerHTML = `
+                            <div class="relative">
+                                <img src="${result.url}" class="w-full h-32 object-cover rounded-lg">
+                                <button onclick="removeImage()" class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
+                        `;
+                        showNotification('Gambar berhasil diupload!', 'success');
+                    } else {
+                        showNotification(result.message || 'Gagal mengupload gambar', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    showNotification('Gagal mengupload gambar', 'error');
+                }
+            }
+        });
+        
+        function removeImage() {
+            selectedImage = null;
+            document.getElementById('selectedImage').innerHTML = '';
+            document.getElementById('imageUpload').value = '';
+        }
+
         // Create post
         async function createPost() {
             const content = document.getElementById('postContent').value.trim();
-            if (!content && !selectedMusic) {
-                alert('Tulis sesuatu atau pilih musik!');
+            if (!content && !selectedMusic && !selectedImage) {
+                showNotification('Tulis sesuatu, tambahkan gambar, atau pilih musik!', 'error');
                 return;
             }
 
@@ -1866,17 +2018,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         content,
-                        music: selectedMusic ? JSON.stringify(selectedMusic) : null
+                        music: selectedMusic ? JSON.stringify(selectedMusic) : null,
+                        image: selectedImage || null
                     })
                 });
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (result.success) {
                     document.getElementById('postContent').value = '';
                     selectedMusic = null;
+                    selectedImage = null;
                     document.getElementById('selectedMusic').classList.add('hidden');
+                    document.getElementById('selectedImage').innerHTML = '';
+                    document.getElementById('imageUpload').value = '';
                     hideCreatePost();
                     loadPosts();
-                    showNotification('Post berhasil dibuat!');
+                    showNotification('Post berhasil dibuat!', 'success');
+                } else {
+                    showNotification(result.message || 'Gagal membuat post!', 'error');
                 }
             } catch (error) {
                 console.error('Error creating post:', error);
@@ -1893,19 +2053,163 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     body: JSON.stringify({ postId })
                 });
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (result.success) {
                     const likesElement = document.getElementById(`likes-${postId}`);
-                    const currentLikes = parseInt(likesElement.textContent);
-                    likesElement.textContent = currentLikes + 1;
+                    if (likesElement) {
+                        likesElement.textContent = result.likes;
+                    }
+                    showNotification('Post dilike!', 'success');
+                } else {
+                    showNotification('Gagal like post', 'error');
                 }
             } catch (error) {
                 console.error('Error liking post:', error);
+                showNotification('Terjadi kesalahan saat like post', 'error');
+            }
+        }
+
+        // Add comment
+        async function addComment(postId) {
+            const commentInput = document.getElementById(`commentInput-${postId}`);
+            const content = commentInput.value.trim();
+            
+            if (!content) {
+                showNotification('Komentar tidak boleh kosong', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('?action=add_comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId, content })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    commentInput.value = '';
+                    showNotification('Komentar berhasil ditambahkan!', 'success');
+                    loadComments(postId);
+                } else {
+                    showNotification(result.message || 'Gagal menambahkan komentar', 'error');
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                showNotification('Terjadi kesalahan saat menambahkan komentar', 'error');
+            }
+        }
+
+        // Load comments
+        async function loadComments(postId) {
+            try {
+                const response = await fetch('?action=get_comments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId })
+                });
+                
+                const comments = await response.json();
+                const commentsContainer = document.getElementById(`comments-${postId}`);
+                
+                if (commentsContainer) {
+                    commentsContainer.innerHTML = comments.map(comment => `
+                        <div class="flex items-start space-x-3 mb-3">
+                            <img src="${comment.avatar}" class="w-8 h-8 rounded-full">
+                            <div class="flex-1">
+                                <div class="bg-gray-100 rounded-lg p-3">
+                                    <p class="font-medium text-sm">${comment.display_name}</p>
+                                    <p class="text-sm">${comment.content}</p>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">${new Date(comment.created_at).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
             }
         }
 
         // Share post
-        function sharePost(postId) {
-            showNotification('Link post berhasil disalin!');
+        function sharePost(postId, content = '') {
+            const shareModal = document.getElementById('shareModal');
+            const shareContent = document.getElementById('shareContent');
+            const sharePostId = document.getElementById('sharePostId');
+            
+            shareContent.textContent = content.substring(0, 100) + (content.length > 100 ? '...' : '');
+            sharePostId.value = postId;
+            shareModal.classList.remove('hidden');
+            shareModal.classList.add('flex');
+        }
+
+        function hideShareModal() {
+            const shareModal = document.getElementById('shareModal');
+            shareModal.classList.add('hidden');
+            shareModal.classList.remove('flex');
+        }
+
+        function shareToWhatsApp() {
+            const content = document.getElementById('shareContent').textContent;
+            const postId = document.getElementById('sharePostId').value;
+            const url = `${window.location.origin}#post-${postId}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(content + ' ' + url)}`;
+            window.open(whatsappUrl, '_blank');
+            hideShareModal();
+            showNotification('Berbagi ke WhatsApp berhasil!', 'success');
+        }
+
+        function shareToFacebook() {
+            const postId = document.getElementById('sharePostId').value;
+            const url = `${window.location.origin}#post-${postId}`;
+            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            window.open(facebookUrl, '_blank');
+            hideShareModal();
+            showNotification('Berbagi ke Facebook berhasil!', 'success');
+        }
+
+        function shareToTwitter() {
+            const content = document.getElementById('shareContent').textContent;
+            const postId = document.getElementById('sharePostId').value;
+            const url = `${window.location.origin}#post-${postId}`;
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(content)}&url=${encodeURIComponent(url)}`;
+            window.open(twitterUrl, '_blank');
+            hideShareModal();
+            showNotification('Berbagi ke Twitter berhasil!', 'success');
+        }
+
+        function shareToTelegram() {
+            const content = document.getElementById('shareContent').textContent;
+            const postId = document.getElementById('sharePostId').value;
+            const url = `${window.location.origin}#post-${postId}`;
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(content)}`;
+            window.open(telegramUrl, '_blank');
+            hideShareModal();
+            showNotification('Berbagi ke Telegram berhasil!', 'success');
+        }
+
+        function copyLink() {
+            const postId = document.getElementById('sharePostId').value;
+            const url = `${window.location.origin}#post-${postId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                hideShareModal();
+                showNotification('Link berhasil disalin!', 'success');
+            }).catch(() => {
+                showNotification('Gagal menyalin link', 'error');
+            });
+        }
+
+        // Toggle comments section
+        function toggleComments(postId) {
+            const commentsSection = document.getElementById(`commentsSection-${postId}`);
+            if (commentsSection.classList.contains('hidden')) {
+                commentsSection.classList.remove('hidden');
+                loadComments(postId);
+            } else {
+                commentsSection.classList.add('hidden');
+            }
         }
 
         // Show/hide modals
@@ -2557,5 +2861,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             }
         });
     </script>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Bagikan Post</h3>
+                <button onclick="hideShareModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                <p id="shareContent" class="text-sm text-gray-700"></p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="shareToWhatsApp()" class="flex items-center justify-center p-3 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                    <i class="fab fa-whatsapp mr-2"></i>
+                    WhatsApp
+                </button>
+                <button onclick="shareToFacebook()" class="flex items-center justify-center p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <i class="fab fa-facebook mr-2"></i>
+                    Facebook
+                </button>
+                <button onclick="shareToTwitter()" class="flex items-center justify-center p-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500">
+                    <i class="fab fa-twitter mr-2"></i>
+                    Twitter
+                </button>
+                <button onclick="shareToTelegram()" class="flex items-center justify-center p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    <i class="fab fa-telegram mr-2"></i>
+                    Telegram
+                </button>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t">
+                <button onclick="copyLink()" class="w-full flex items-center justify-center p-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    <i class="fas fa-link mr-2"></i>
+                    Copy Link
+                </button>
+            </div>
+            
+            <input type="hidden" id="sharePostId" value="">
+        </div>
+    </div>
+
 </body>
 </html>
