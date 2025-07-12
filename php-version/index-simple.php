@@ -50,7 +50,8 @@ if ($userCount == 0) {
         ('sari_bandung', 'Sari Melati', 'sari@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', 'Desainer grafis • Bandung • Cat lover 🐱', 890, 654, 32, 0),
         ('budi_jogja', 'Budi Santoso', 'budi@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa UGM • Fotografer pemula', 567, 423, 28, 0),
         ('maya_bali', 'Maya Sari', 'maya@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', 'Travel blogger • Bali • Beach lover 🏖️', 2340, 1580, 89, 1),
-        ('reza_surabaya', 'Reza Ahmad', 'reza@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, 0)");
+        ('reza_surabaya', 'Reza Ahmad', 'reza@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, 0),
+        ('admin', 'Administrator', 'admin@genzsocial.com', '". password_hash('admin123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Admin GenZ Social Media', 0, 0, 0, 1)");
     
     $pdo->exec("INSERT INTO posts (user_id, content, likes) VALUES
         (1, 'Hari yang indah untuk ngopi sambil coding! ☕ Ada yang mau join?', 24),
@@ -77,13 +78,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             
         case 'create_post':
             $input = json_decode(file_get_contents('php://input'), true);
-            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, image, music) VALUES (1, ?, ?, ?)");
+            $userId = $_SESSION['user_id'] ?? 1;
+            $stmt = $pdo->prepare("INSERT INTO posts (user_id, content, image, music) VALUES (?, ?, ?, ?)");
             $stmt->execute([
+                $userId,
                 $input['content'] ?? '',
                 $input['image'] ?? '',
                 $input['music'] ?? ''
             ]);
             echo json_encode(['success' => true, 'id' => $pdo->lastInsertId()]);
+            exit;
+            
+        case 'delete_post':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $postId = $input['postId'] ?? 0;
+            $userId = $_SESSION['user_id'] ?? 0;
+            
+            // Check if user owns the post or is admin
+            $stmt = $pdo->prepare("SELECT user_id FROM posts WHERE id = ?");
+            $stmt->execute([$postId]);
+            $post = $stmt->fetch();
+            
+            if ($post && ($post['user_id'] == $userId || $_SESSION['username'] == 'admin')) {
+                $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
+                $stmt->execute([$postId]);
+                echo json_encode(['success' => true, 'message' => 'Post berhasil dihapus']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Tidak memiliki izin untuk menghapus post ini']);
+            }
             exit;
             
         case 'stories':
@@ -536,8 +558,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 
                 <div class="mt-4 p-3 bg-blue-50 rounded-lg">
                     <p class="text-sm text-blue-800 font-medium mb-2">Demo Login:</p>
-                    <p class="text-xs text-blue-700">Username: <strong>andi_jakarta</strong></p>
-                    <p class="text-xs text-blue-700">Password: <strong>password123</strong></p>
+                    <p class="text-xs text-blue-700">User: <strong>andi_jakarta</strong> / <strong>password123</strong></p>
+                    <p class="text-xs text-blue-700">Admin: <strong>admin</strong> / <strong>admin123</strong></p>
                 </div>
             </div>
 
@@ -1747,7 +1769,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                                             <div class="font-medium text-sm">${musicData.name}</div>
                                             <div class="text-xs text-gray-600">${musicData.artist}</div>
                                         </div>
-                                        <button onclick="playMusic('${musicData.preview_url || ''}')" class="text-blue-600 hover:text-blue-800">
+                                        <button onclick="playMusic('${musicData.preview_url || ''}', this)" class="text-blue-600 hover:text-blue-800">
                                             <i class="fas fa-play"></i>
                                         </button>
                                     </div>
@@ -2322,20 +2344,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             if (!confirm('Hapus post ini? Tindakan ini tidak dapat dibatalkan.')) return;
             
             try {
-                const response = await fetch('?action=admin_delete_post', {
+                const response = await fetch('?action=delete_post', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ postId })
                 });
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (result.success) {
                     showNotification('Post berhasil dihapus!');
-                    loadAdminPosts();
-                    loadAdminStats();
                     loadPosts(); // Refresh main feed
+                    if (typeof loadAdminPosts === 'function') {
+                        loadAdminPosts();
+                        loadAdminStats();
+                    }
+                } else {
+                    showNotification(result.message || 'Gagal menghapus post', 'error');
                 }
             } catch (error) {
                 console.error('Error deleting post:', error);
+                showNotification('Terjadi kesalahan saat menghapus post', 'error');
             }
         }
 
@@ -2349,6 +2378,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             // Show this menu
             document.getElementById(`postMenu${postId}`).classList.remove('hidden');
         }
+
+        // Hide post menus when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[id^="postMenu"]') && !event.target.closest('button[onclick*="showPostMenu"]')) {
+                document.querySelectorAll('[id^="postMenu"]').forEach(menu => {
+                    menu.classList.add('hidden');
+                });
+            }
+        });
 
         function copyPostLink(postId) {
             const link = `${window.location.origin}#post-${postId}`;
@@ -2367,6 +2405,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             
             // Hide menu
             document.getElementById(`postMenu${postId}`).classList.add('hidden');
+        }
+        
+        function hidePostMenu(postId) {
+            document.getElementById(`postMenu${postId}`).classList.add('hidden');
+        }
+
+        // Music player functions
+        let currentAudio = null;
+        let currentPlayButton = null;
+
+        function playMusic(url, buttonElement) {
+            if (!url) {
+                showNotification('Preview musik tidak tersedia', 'error');
+                return;
+            }
+            
+            // Stop current audio if playing
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                if (currentPlayButton) {
+                    currentPlayButton.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            }
+            
+            // If clicking same button, just pause
+            if (currentPlayButton === buttonElement) {
+                currentAudio = null;
+                currentPlayButton = null;
+                return;
+            }
+            
+            // Play new audio
+            currentAudio = new Audio(url);
+            currentPlayButton = buttonElement;
+            
+            buttonElement.innerHTML = '<i class="fas fa-pause"></i>';
+            
+            currentAudio.play().catch(e => {
+                showNotification('Gagal memutar musik', 'error');
+                buttonElement.innerHTML = '<i class="fas fa-play"></i>';
+            });
+            
+            currentAudio.onended = () => {
+                buttonElement.innerHTML = '<i class="fas fa-play"></i>';
+                currentAudio = null;
+                currentPlayButton = null;
+            };
         }
 
         // FAQ Functions
