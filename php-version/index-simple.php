@@ -14,6 +14,8 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(50) UNIQUE NOT NULL,
     display_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE DEFAULT '',
+    password_hash VARCHAR(255) DEFAULT '',
     avatar VARCHAR(255) DEFAULT '',
     bio TEXT DEFAULT '',
     followers INTEGER DEFAULT 0,
@@ -43,12 +45,12 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS stories (
 // Add sample data if tables are empty
 $userCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 if ($userCount == 0) {
-    $pdo->exec("INSERT INTO users (username, display_name, avatar, bio, followers, following, posts_count, is_verified) VALUES
-        ('andi_jakarta', 'Andi Pratama', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', 'Pecinta kopi dan teknologi dari Jakarta', 1250, 890, 45, 1),
-        ('sari_bandung', 'Sari Melati', 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', 'Desainer grafis • Bandung • Cat lover 🐱', 890, 654, 32, 0),
-        ('budi_jogja', 'Budi Santoso', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa UGM • Fotografer pemula', 567, 423, 28, 0),
-        ('maya_bali', 'Maya Sari', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', 'Travel blogger • Bali • Beach lover 🏖️', 2340, 1580, 89, 1),
-        ('reza_surabaya', 'Reza Ahmad', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, 0)");
+    $pdo->exec("INSERT INTO users (username, display_name, email, password_hash, avatar, bio, followers, following, posts_count, is_verified) VALUES
+        ('andi_jakarta', 'Andi Pratama', 'andi@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', 'Pecinta kopi dan teknologi dari Jakarta', 1250, 890, 45, 1),
+        ('sari_bandung', 'Sari Melati', 'sari@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', 'Desainer grafis • Bandung • Cat lover 🐱', 890, 654, 32, 0),
+        ('budi_jogja', 'Budi Santoso', 'budi@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa UGM • Fotografer pemula', 567, 423, 28, 0),
+        ('maya_bali', 'Maya Sari', 'maya@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', 'Travel blogger • Bali • Beach lover 🏖️', 2340, 1580, 89, 1),
+        ('reza_surabaya', 'Reza Ahmad', 'reza@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, 0)");
     
     $pdo->exec("INSERT INTO posts (user_id, content, likes) VALUES
         (1, 'Hari yang indah untuk ngopi sambil coding! ☕ Ada yang mau join?', 24),
@@ -194,6 +196,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             });
             
             echo json_encode(array_values($filtered));
+            exit;
+            
+        case 'login':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $username = $input['username'] ?? '';
+            $password = $input['password'] ?? '';
+            
+            // Check if user exists
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+            $stmt->execute([$username, $username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($user && password_verify($password, $user['password_hash'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['display_name'] = $user['display_name'];
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Login berhasil',
+                    'user' => [
+                        'id' => $user['id'],
+                        'username' => $user['username'],
+                        'display_name' => $user['display_name'],
+                        'avatar' => $user['avatar']
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Username atau password salah'
+                ]);
+            }
+            exit;
+
+        case 'register':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $name = $input['name'] ?? '';
+            $username = $input['username'] ?? '';
+            $email = $input['email'] ?? '';
+            $password = $input['password'] ?? '';
+            
+            // Check if username or email already exists
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+            $stmt->execute([$username, $email]);
+            if ($stmt->fetch()) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Username atau email sudah digunakan'
+                ]);
+                exit;
+            }
+            
+            // Hash password
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+            
+            // Insert new user
+            $stmt = $pdo->prepare("INSERT INTO users (username, display_name, email, password_hash, avatar, bio, followers, following, posts_count, is_verified) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0)");
+            $defaultAvatar = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face';
+            $stmt->execute([$username, $name, $email, $passwordHash, $defaultAvatar, '']);
+            
+            $userId = $pdo->lastInsertId();
+            
+            // Auto login after registration
+            $_SESSION['user_id'] = $userId;
+            $_SESSION['username'] = $username;
+            $_SESSION['display_name'] = $name;
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Registrasi berhasil',
+                'user' => [
+                    'id' => $userId,
+                    'username' => $username,
+                    'display_name' => $name,
+                    'avatar' => $defaultAvatar
+                ]
+            ]);
+            exit;
+
+        case 'logout':
+            session_destroy();
+            echo json_encode(['success' => true, 'message' => 'Logout berhasil']);
             exit;
     }
 }
@@ -405,6 +490,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         <div class="splash-loader"></div>
     </div>
 
+    <!-- Login/Register Page -->
+    <div id="authPage" class="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-xl">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">GenZ</h1>
+                <p class="text-gray-600">Social Media untuk Generasi Z</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username atau Email</label>
+                    <input type="text" id="loginUsername" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Masukkan username atau email">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="loginPassword" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Masukkan password">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200">
+                        <span class="ml-2 text-sm text-gray-600">Ingat saya</span>
+                    </label>
+                    <a href="#" class="text-sm text-purple-600 hover:text-purple-500">Lupa password?</a>
+                </div>
+                
+                <button onclick="handleLogin()" 
+                        class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200">
+                    Masuk
+                </button>
+                
+                <div class="text-center">
+                    <span class="text-gray-600">Belum punya akun? </span>
+                    <button onclick="showRegisterForm()" class="text-purple-600 hover:text-purple-500 font-medium">
+                        Daftar sekarang
+                    </button>
+                </div>
+                
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800 font-medium mb-2">Demo Login:</p>
+                    <p class="text-xs text-blue-700">Username: <strong>andi_jakarta</strong></p>
+                    <p class="text-xs text-blue-700">Password: <strong>password123</strong></p>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="space-y-6 hidden">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                    <input type="text" id="registerName" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Masukkan nama lengkap">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" id="registerUsername" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Pilih username unik">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="registerEmail" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Masukkan email">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="registerPassword" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Minimal 8 karakter">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Konfirmasi Password</label>
+                    <input type="password" id="registerConfirmPassword" 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                           placeholder="Ulangi password">
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" id="agreeTerms" class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200">
+                    <label for="agreeTerms" class="ml-2 text-sm text-gray-600">
+                        Saya setuju dengan <a href="#" class="text-purple-600 hover:text-purple-500">Syarat dan Ketentuan</a>
+                    </label>
+                </div>
+                
+                <button onclick="handleRegister()" 
+                        class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-200">
+                    Daftar
+                </button>
+                
+                <div class="text-center">
+                    <span class="text-gray-600">Sudah punya akun? </span>
+                    <button onclick="showLoginForm()" class="text-purple-600 hover:text-purple-500 font-medium">
+                        Masuk di sini
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <div id="mainContent" class="main-content">
         <!-- Header -->
@@ -584,6 +779,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                             <span>Admin Panel</span>
                         </div>
                         <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    <button onclick="handleLogout()" class="w-full flex items-center justify-between p-3 hover:bg-red-50 rounded-lg text-red-600">
+                        <div class="flex items-center">
+                            <i class="fas fa-sign-out-alt text-xl mr-3"></i>
+                            <span>Logout</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-red-400"></i>
                     </button>
                 </div>
             </div>
@@ -1374,15 +1576,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 document.getElementById('splashScreen').classList.add('hidden');
-                document.getElementById('mainContent').classList.add('visible');
-                
-                setTimeout(function() {
-                    loadPosts();
-                    loadStories();
-                    loadFAQ();
-                }, 300);
+                document.getElementById('authPage').classList.remove('hidden');
+                loadFAQ();
             }, 2500);
         });
+
+        // Auth Functions
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            if (!username || !password) {
+                showNotification('Mohon lengkapi semua field!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    document.getElementById('authPage').classList.add('hidden');
+                    document.getElementById('mainContent').classList.add('visible');
+                    
+                    // Update header with user info
+                    updateUserHeader(result.user);
+                    
+                    setTimeout(function() {
+                        loadPosts();
+                        loadStories();
+                    }, 300);
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Terjadi kesalahan saat login', 'error');
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            if (!name || !username || !email || !password || !confirmPassword) {
+                showNotification('Mohon lengkapi semua field!', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showNotification('Password tidak cocok!', 'error');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showNotification('Password minimal 8 karakter!', 'error');
+                return;
+            }
+            
+            if (!agreeTerms) {
+                showNotification('Mohon setujui syarat dan ketentuan!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    document.getElementById('authPage').classList.add('hidden');
+                    document.getElementById('mainContent').classList.add('visible');
+                    
+                    // Update header with user info
+                    updateUserHeader(result.user);
+                    
+                    setTimeout(function() {
+                        loadPosts();
+                        loadStories();
+                    }, 300);
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Terjadi kesalahan saat registrasi', 'error');
+            }
+        }
+
+        function updateUserHeader(user) {
+            const avatarImg = document.querySelector('header img');
+            if (avatarImg) {
+                avatarImg.src = user.avatar;
+                avatarImg.alt = user.display_name;
+                avatarImg.title = user.display_name;
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                try {
+                    const response = await fetch('?action=logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification(result.message, 'success');
+                        
+                        // Hide main content and show auth page
+                        document.getElementById('mainContent').classList.remove('visible');
+                        document.getElementById('authPage').classList.remove('hidden');
+                        
+                        // Reset forms
+                        document.getElementById('loginUsername').value = '';
+                        document.getElementById('loginPassword').value = '';
+                        showLoginForm();
+                    }
+                } catch (error) {
+                    showNotification('Terjadi kesalahan saat logout', 'error');
+                }
+            }
+        }
 
         // Load posts from server
         async function loadPosts() {

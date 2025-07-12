@@ -296,6 +296,15 @@ Changelog:
   - All API endpoints operational with proper responses
   - Server logs showing successful initialization and ready for production use
   - Migration completed with full functionality preserved
+- July 12, 2025. Enhanced PHP version with secure authentication system:
+  - Added comprehensive login and register forms after splash screen
+  - Implemented secure password hashing with PHP's password_hash() function
+  - Added email field to database schema with proper validation
+  - Created complete authentication flow with session management
+  - Added logout functionality with confirmation dialog
+  - Included demo credentials (andi_jakarta/password123) for easy testing
+  - Updated all sample users with hashed passwords and email addresses
+  - Authentication system now ready for production use
 ```
 
 ## User Preferences
