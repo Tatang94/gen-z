@@ -91,6 +91,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             $stmt->execute([$input['postId']]);
             echo json_encode(['success' => true]);
             exit;
+            
+        case 'admin_stats':
+            $totalUsers = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+            $totalPosts = $pdo->query("SELECT COUNT(*) FROM posts")->fetchColumn();
+            $verifiedUsers = $pdo->query("SELECT COUNT(*) FROM users WHERE is_verified = 1")->fetchColumn();
+            $totalLikes = $pdo->query("SELECT SUM(likes) FROM posts")->fetchColumn();
+            
+            echo json_encode([
+                'totalUsers' => $totalUsers,
+                'totalPosts' => $totalPosts,
+                'verifiedUsers' => $verifiedUsers,
+                'totalLikes' => $totalLikes ?: 0
+            ]);
+            exit;
+            
+        case 'admin_users':
+            $stmt = $pdo->query("SELECT * FROM users ORDER BY created_at DESC");
+            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            exit;
+            
+        case 'admin_delete_user':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$input['userId']]);
+            echo json_encode(['success' => true]);
+            exit;
+            
+        case 'admin_delete_post':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
+            $stmt->execute([$input['postId']]);
+            echo json_encode(['success' => true]);
+            exit;
+            
+        case 'admin_verify_user':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $stmt = $pdo->prepare("UPDATE users SET is_verified = 1 WHERE id = ?");
+            $stmt->execute([$input['userId']]);
+            echo json_encode(['success' => true]);
+            exit;
     }
 }
 ?>
@@ -186,9 +226,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     <i class="fas fa-user text-xl"></i>
                     <span class="text-xs mt-1">Profil</span>
                 </button>
+                <button onclick="showAdminPanel()" class="flex flex-col items-center text-gray-500">
+                    <i class="fas fa-cog text-xl"></i>
+                    <span class="text-xs mt-1">Admin</span>
+                </button>
             </div>
         </div>
     </nav>
+
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-6xl w-full mx-4 max-h-90vh overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
+                <button onclick="hideAdminPanel()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="flex space-x-8">
+                    <button onclick="showAdminTab('dashboard')" class="admin-tab-btn py-2 px-1 border-b-2 border-purple-500 text-purple-600 font-medium">
+                        Dashboard
+                    </button>
+                    <button onclick="showAdminTab('users')" class="admin-tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                        Users
+                    </button>
+                    <button onclick="showAdminTab('posts')" class="admin-tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+                        Posts
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="adminDashboard" class="admin-tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100">Total Users</p>
+                                <p id="totalUsers" class="text-3xl font-bold">-</p>
+                            </div>
+                            <i class="fas fa-users text-3xl text-blue-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100">Total Posts</p>
+                                <p id="totalPosts" class="text-3xl font-bold">-</p>
+                            </div>
+                            <i class="fas fa-edit text-3xl text-green-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100">Verified Users</p>
+                                <p id="verifiedUsers" class="text-3xl font-bold">-</p>
+                            </div>
+                            <i class="fas fa-check-circle text-3xl text-purple-200"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-red-100">Total Likes</p>
+                                <p id="totalLikes" class="text-3xl font-bold">-</p>
+                            </div>
+                            <i class="fas fa-heart text-3xl text-red-200"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="adminUsers" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stats</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Posts Tab -->
+            <div id="adminPosts" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Engagement</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postsTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Load posts and stories on page load
@@ -335,6 +484,199 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             setTimeout(() => {
                 notification.remove();
             }, 3000);
+        }
+
+        // Admin Panel Functions
+        function showAdminPanel() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('adminModal').classList.add('flex');
+            loadAdminStats();
+        }
+
+        function hideAdminPanel() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminModal').classList.remove('flex');
+        }
+
+        function showAdminTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.admin-tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active state from all buttons
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'text-purple-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Show selected tab
+            document.getElementById('admin' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.remove('hidden');
+            
+            // Set active button
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-purple-500', 'text-purple-600');
+            
+            // Load data for specific tabs
+            if (tabName === 'users') {
+                loadAdminUsers();
+            } else if (tabName === 'posts') {
+                loadAdminPosts();
+            }
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch('?action=admin_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const stats = await response.json();
+                
+                document.getElementById('totalUsers').textContent = stats.totalUsers;
+                document.getElementById('totalPosts').textContent = stats.totalPosts;
+                document.getElementById('verifiedUsers').textContent = stats.verifiedUsers;
+                document.getElementById('totalLikes').textContent = stats.totalLikes;
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+            }
+        }
+
+        async function loadAdminUsers() {
+            try {
+                const response = await fetch('?action=admin_users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const users = await response.json();
+                
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img src="${user.avatar}" class="w-10 h-10 rounded-full mr-3">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">${user.display_name}</div>
+                                    <div class="text-sm text-gray-500">@${user.username}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div>Followers: ${user.followers}</div>
+                            <div>Posts: ${user.posts_count}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                user.is_verified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }">
+                                ${user.is_verified ? 'Verified' : 'Regular'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            ${!user.is_verified ? `<button onclick="verifyUser(${user.id})" class="text-green-600 hover:text-green-900 mr-2">Verify</button>` : ''}
+                            <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading admin users:', error);
+            }
+        }
+
+        async function loadAdminPosts() {
+            try {
+                const response = await fetch('?action=posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const posts = await response.json();
+                
+                const tbody = document.getElementById('postsTableBody');
+                tbody.innerHTML = posts.map(post => `
+                    <tr>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">${post.content.substring(0, 50)}${post.content.length > 50 ? '...' : ''}</div>
+                            <div class="text-sm text-gray-500">${new Date(post.created_at).toLocaleDateString()}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img src="${post.avatar}" class="w-8 h-8 rounded-full mr-2">
+                                <div class="text-sm text-gray-900">${post.display_name}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div>${post.likes} likes</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="deletePost(${post.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading admin posts:', error);
+            }
+        }
+
+        async function verifyUser(userId) {
+            if (!confirm('Verifikasi user ini?')) return;
+            
+            try {
+                const response = await fetch('?action=admin_verify_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                
+                if (response.ok) {
+                    showNotification('User berhasil diverifikasi!');
+                    loadAdminUsers();
+                    loadAdminStats();
+                }
+            } catch (error) {
+                console.error('Error verifying user:', error);
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Hapus user ini? Tindakan ini tidak dapat dibatalkan.')) return;
+            
+            try {
+                const response = await fetch('?action=admin_delete_user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                
+                if (response.ok) {
+                    showNotification('User berhasil dihapus!');
+                    loadAdminUsers();
+                    loadAdminStats();
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Hapus post ini? Tindakan ini tidak dapat dibatalkan.')) return;
+            
+            try {
+                const response = await fetch('?action=admin_delete_post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId })
+                });
+                
+                if (response.ok) {
+                    showNotification('Post berhasil dihapus!');
+                    loadAdminPosts();
+                    loadAdminStats();
+                    loadPosts(); // Refresh main feed
+                }
+            } catch (error) {
+                console.error('Error deleting post:', error);
+            }
         }
     </script>
 </body>
