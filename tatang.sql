@@ -70,25 +70,8 @@ CREATE TABLE sessions (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Insert sample users
-INSERT INTO users (username, display_name, email, password, avatar, bio, followers, following, posts_count, is_verified, is_admin) VALUES
-('andi_jakarta', 'Andi Pratama', 'andi@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Software Developer • Jakarta • Coffee lover ☕', 1234, 567, 45, TRUE, FALSE),
-('sari_bandung', 'Sari Dewi', 'sari@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1494790108755-2616b9c7ed95?w=150&h=150&fit=crop&crop=face', 'UI/UX Designer • Bandung • Art enthusiast 🎨', 2345, 890, 67, TRUE, FALSE),
-('budi_surabaya', 'Budi Santoso', 'budi@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', 'Content Creator • Surabaya • Food blogger 🍜', 3456, 1234, 89, FALSE, FALSE),
-('dina_yogya', 'Dina Maharani', 'dina@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face', 'Photographer • Yogyakarta • Culture lover 📸', 4567, 2345, 123, TRUE, FALSE),
-('maya_bali', 'Maya Sari', 'maya@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', 'Travel blogger • Bali • Beach lover 🏖️', 2340, 1580, 89, TRUE, FALSE),
-('reza_surabaya', 'Reza Ahmad', 'reza@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, FALSE, FALSE),
-('admin', 'Administrator', 'admin@genzsocial.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Admin GenZ Social Media', 0, 0, 0, TRUE, TRUE);
-
--- Insert sample posts
-INSERT INTO posts (user_id, content, likes) VALUES
-(1, 'Selamat datang di GenZ Social Media! 🎉', 5);
-
--- Insert sample stories
-INSERT INTO stories (user_id, image) VALUES
-(1, 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop'),
-(2, 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=600&fit=crop'),
-(3, 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=600&fit=crop');
+-- No demo data - clean start for user registration
+-- Users will register themselves through the application
 
 -- Create indexes for better performance
 CREATE INDEX idx_posts_user_id ON posts(user_id);

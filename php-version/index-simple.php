@@ -42,20 +42,7 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS stories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
-// Add sample data if tables are empty
-$userCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-if ($userCount == 0) {
-    $pdo->exec("INSERT INTO users (username, display_name, email, password_hash, avatar, bio, followers, following, posts_count, is_verified) VALUES
-        ('andi_jakarta', 'Andi Pratama', 'andi@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face', 'Pecinta kopi dan teknologi dari Jakarta', 1250, 890, 45, 1),
-        ('sari_bandung', 'Sari Melati', 'sari@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', 'Desainer grafis • Bandung • Cat lover 🐱', 890, 654, 32, 0),
-        ('budi_jogja', 'Budi Santoso', 'budi@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa UGM • Fotografer pemula', 567, 423, 28, 0),
-        ('maya_bali', 'Maya Sari', 'maya@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face', 'Travel blogger • Bali • Beach lover 🏖️', 2340, 1580, 89, 1),
-        ('reza_surabaya', 'Reza Ahmad', 'reza@gmail.com', '". password_hash('password123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face', 'Mahasiswa ITS • Coding enthusiast', 789, 567, 34, 0),
-        ('admin', 'Administrator', 'admin@genzsocial.com', '". password_hash('admin123', PASSWORD_DEFAULT) ."', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face', 'Admin GenZ Social Media', 0, 0, 0, 1)");
-    
-    $pdo->exec("INSERT INTO posts (user_id, content, likes) VALUES
-        (1, 'Selamat datang di GenZ Social Media! 🎉', 5)");
-}
+// No demo data - clean start for user registration
 
 // API Handler
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {

@@ -334,6 +334,12 @@ Changelog:
   - Added sample data with minimal demo content
   - Removed deprecated SQL files (genZ-social-media.sql, genZ-social-media-sqlite.sql)
   - Database schema now production-ready with proper foreign keys and constraints
+- July 12, 2025. Removed all demo data for clean user registration:
+  - Removed all sample users including admin/admin123 and andi_jakarta/password123
+  - Cleaned up demo posts and stories data
+  - Updated both index-simple.php and tatang.sql to start with empty state
+  - Users must now register themselves through the application
+  - Application starts with completely clean database ready for production use
 ```
 
 ## User Preferences
