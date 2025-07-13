@@ -175,8 +175,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             // Parse music data if exists
             foreach ($posts as &$post) {
                 if (!empty($post['music'])) {
-                    $post['music'] = json_decode($post['music'], true);
+                    $musicData = json_decode($post['music'], true);
+                    $post['music'] = $musicData;
                 }
+                // Ensure all required fields exist
+                $post['avatar'] = $post['avatar'] ?: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face';
+                $post['is_verified'] = $post['is_verified'] ?: false;
+                $post['likes'] = $post['likes'] ?: 0;
             }
             
             echo json_encode($posts);
@@ -940,6 +945,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             // Load page-specific content
             if (page === 'profile') {
                 loadProfile();
+            } else if (page === 'home') {
+                // Reload posts when switching to home
+                loadPosts();
             }
         }
 
@@ -958,7 +966,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         function displayPosts(posts) {
             const container = document.getElementById('postsContainer');
             
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12">
                         <i class="fas fa-comments text-6xl text-gray-300 mb-4"></i>
@@ -976,48 +984,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     mediaContent = `<img src="${post.image}" alt="Post image" class="w-full h-auto rounded-lg mt-3">`;
                 }
                 
-                if (post.music) {
-                    const music = typeof post.music === 'string' ? JSON.parse(post.music) : post.music;
-                    mediaContent += `
-                        <div class="audio-player">
-                            <button class="play-btn" onclick="toggleAudio('audio_${post.id}')">
-                                <i class="fas fa-play" id="icon_${post.id}"></i>
-                            </button>
-                            <div>
-                                <p class="font-semibold text-sm">${music.name}</p>
-                                <p class="text-gray-600 text-xs">${music.artist}</p>
+                if (post.music && post.music !== '') {
+                    let music;
+                    try {
+                        music = typeof post.music === 'string' ? JSON.parse(post.music) : post.music;
+                    } catch (e) {
+                        music = post.music;
+                    }
+                    
+                    if (music && music.name) {
+                        mediaContent += `
+                            <div class="audio-player">
+                                <button class="play-btn" onclick="toggleAudio('audio_${post.id}')">
+                                    <i class="fas fa-play" id="icon_${post.id}"></i>
+                                </button>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-sm">${music.name || 'Unknown Track'}</p>
+                                    <p class="text-gray-600 text-xs">${music.artist || 'Unknown Artist'}</p>
+                                </div>
+                                ${music.preview_url ? `<audio id="audio_${post.id}" src="${music.preview_url}" preload="none"></audio>` : ''}
                             </div>
-                            ${music.preview_url ? `<audio id="audio_${post.id}" src="${music.preview_url}" preload="none"></audio>` : ''}
-                        </div>
-                    `;
+                        `;
+                    }
                 }
 
                 return `
                     <div class="bg-white rounded-lg shadow-sm p-6 mb-4">
                         <div class="flex items-start space-x-3">
-                            <img src="${post.avatar}" alt="${post.display_name}" class="w-10 h-10 rounded-full">
+                            <img src="${post.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}" 
+                                 alt="${post.display_name || 'User'}" 
+                                 class="w-10 h-10 rounded-full object-cover">
                             <div class="flex-1">
                                 <div class="flex items-center space-x-2">
-                                    <h4 class="font-semibold">${post.display_name}</h4>
-                                    ${post.is_verified ? '<i class="fas fa-check-circle text-blue-500 text-sm"></i>' : ''}
-                                    <span class="text-gray-500 text-sm">@${post.username}</span>
+                                    <h4 class="font-semibold">${post.display_name || post.username || 'User'}</h4>
+                                    ${post.is_verified == 1 || post.is_verified === true ? '<i class="fas fa-check-circle text-blue-500 text-sm"></i>' : ''}
+                                    <span class="text-gray-500 text-sm">@${post.username || 'user'}</span>
                                     <span class="text-gray-400 text-sm">• ${new Date(post.created_at).toLocaleDateString('id-ID')}</span>
                                 </div>
-                                ${post.content ? `<p class="mt-2 text-gray-800">${post.content}</p>` : ''}
+                                ${post.content ? `<p class="mt-2 text-gray-800">${post.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
                                 ${mediaContent}
                                 <div class="flex items-center space-x-6 mt-4 pt-3 border-t">
-                                    <button onclick="likePost(${post.id})" class="flex items-center space-x-2 text-gray-500 hover:text-red-500">
+                                    <button onclick="likePost(${post.id})" class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors">
                                         <i class="far fa-heart"></i>
-                                        <span id="likes_${post.id}">${post.likes}</span>
+                                        <span id="likes_${post.id}">${post.likes || 0}</span>
                                     </button>
-                                    <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500">
+                                    <button class="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors">
                                         <i class="far fa-comment"></i>
                                         <span>Komentar</span>
                                     </button>
-                                    <button class="flex items-center space-x-2 text-gray-500 hover:text-green-500">
+                                    <button onclick="sharePost(${post.id}, '${(post.content || '').replace(/'/g, "\\'")}', '${post.display_name || ''}')" 
+                                            class="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors">
                                         <i class="far fa-share"></i>
                                         <span>Bagikan</span>
                                     </button>
+                                    ${currentUser && (currentUser.id == post.user_id || currentUser.username === 'admin') ? `
+                                        <button onclick="deletePost(${post.id})" 
+                                                class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors">
+                                            <i class="far fa-trash"></i>
+                                            <span>Hapus</span>
+                                        </button>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -1056,7 +1082,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     
                     // Force reload posts immediately
                     console.log('Reloading posts after create...');
-                    loadPosts();
+                    setTimeout(() => {
+                        loadPosts();
+                    }, 500); // Small delay to ensure database write completes
                     
                     showToast(result.message, 'success');
                 } else {
@@ -1188,10 +1216,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
                 const result = await response.json();
                 if (result.success) {
-                    document.getElementById(`likes_${postId}`).textContent = result.likes;
+                    const likesElement = document.getElementById(`likes_${postId}`);
+                    if (likesElement) {
+                        likesElement.textContent = result.likes;
+                        // Add visual feedback
+                        likesElement.parentElement.querySelector('i').style.color = '#ef4444';
+                        setTimeout(() => {
+                            likesElement.parentElement.querySelector('i').style.color = '';
+                        }, 200);
+                    }
+                    showToast('Post disukai!', 'success');
+                } else {
+                    showToast(result.message || 'Gagal menyukai post', 'error');
                 }
             } catch (error) {
                 console.error('Error liking post:', error);
+                showToast('Terjadi kesalahan', 'error');
             }
         }
 
@@ -1202,8 +1242,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             if (!audio) return;
             
             if (audio.paused) {
-                audio.play();
-                icon.className = 'fas fa-pause';
+                // Pause all other audio first
+                document.querySelectorAll('audio').forEach(a => {
+                    if (a !== audio) {
+                        a.pause();
+                        const otherId = a.id.replace('audio_', 'icon_');
+                        const otherIcon = document.getElementById(otherId);
+                        if (otherIcon) otherIcon.className = 'fas fa-play';
+                    }
+                });
+                
+                audio.play().then(() => {
+                    icon.className = 'fas fa-pause';
+                }).catch(e => {
+                    console.log('Audio play failed:', e);
+                    showToast('Gagal memutar audio', 'error');
+                });
             } else {
                 audio.pause();
                 icon.className = 'fas fa-play';
@@ -1238,22 +1292,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         function displaySearchResults(users) {
             const container = document.getElementById('searchResults');
             
-            if (users.length === 0) {
+            if (!users || users.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 text-center py-8">Tidak ada hasil ditemukan</p>';
                 return;
             }
 
             container.innerHTML = users.map(user => `
-                <div class="flex items-center justify-between p-4 border-b">
+                <div class="flex items-center justify-between p-4 border-b hover:bg-gray-50 transition-colors">
                     <div class="flex items-center space-x-3">
-                        <img src="${user.avatar}" alt="${user.display_name}" class="w-12 h-12 rounded-full">
+                        <img src="${user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}" 
+                             alt="${user.display_name}" 
+                             class="w-12 h-12 rounded-full object-cover">
                         <div>
-                            <h4 class="font-semibold">${user.display_name}</h4>
+                            <h4 class="font-semibold">${user.display_name || user.username}</h4>
                             <p class="text-gray-600 text-sm">@${user.username}</p>
-                            <p class="text-gray-500 text-xs">${user.followers} pengikut</p>
+                            <p class="text-gray-500 text-xs">${user.followers || 0} pengikut</p>
+                            ${user.bio ? `<p class="text-gray-400 text-xs mt-1">${user.bio.substring(0, 50)}${user.bio.length > 50 ? '...' : ''}</p>` : ''}
                         </div>
                     </div>
-                    <button onclick="followUser(${user.id})" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    <button onclick="followUser(${user.id})" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                         Ikuti
                     </button>
                 </div>
@@ -1271,7 +1329,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 const result = await response.json();
                 if (result.success) {
                     showToast('Berhasil mengikuti pengguna!', 'success');
-                    searchUsers(); // Refresh search results
+                    // Refresh search results
+                    const query = document.getElementById('searchInput').value.trim();
+                    if (query) searchUsers();
                 }
             } catch (error) {
                 showToast('Gagal mengikuti pengguna', 'error');
@@ -1287,29 +1347,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     const user = result.user;
                     document.getElementById('profileContent').innerHTML = `
                         <div class="text-center">
-                            <img src="${user.avatar}" alt="${user.display_name}" class="w-24 h-24 rounded-full mx-auto mb-4">
+                            <img src="${user.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'}" 
+                                 alt="${user.display_name}" 
+                                 class="w-24 h-24 rounded-full mx-auto mb-4 object-cover border-4 border-blue-200">
                             <h3 class="text-xl font-bold">${user.display_name}</h3>
                             <p class="text-gray-600">@${user.username}</p>
-                            <div class="flex justify-center space-x-6 mt-4">
+                            <p class="text-gray-500 text-sm mt-1">${user.email}</p>
+                            <div class="flex justify-center space-x-6 mt-6 p-4 bg-gray-50 rounded-lg">
                                 <div class="text-center">
-                                    <div class="font-bold">${user.posts_count}</div>
+                                    <div class="font-bold text-xl text-blue-600">${user.posts_count || 0}</div>
                                     <div class="text-gray-600 text-sm">Postingan</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold">${user.followers}</div>
+                                    <div class="font-bold text-xl text-green-600">${user.followers || 0}</div>
                                     <div class="text-gray-600 text-sm">Pengikut</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="font-bold">${user.following}</div>
+                                    <div class="font-bold text-xl text-purple-600">${user.following || 0}</div>
                                     <div class="text-gray-600 text-sm">Mengikuti</div>
                                 </div>
                             </div>
-                            <p class="mt-4 text-gray-700">${user.bio || 'Belum ada bio'}</p>
+                            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                                <p class="text-gray-700">${user.bio || 'Belum ada bio. Tambahkan bio untuk menceritakan tentang diri Anda!'}</p>
+                            </div>
+                            <div class="mt-4 text-sm text-gray-500">
+                                Bergabung sejak ${new Date(user.created_at || Date.now()).toLocaleDateString('id-ID')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('profileContent').innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fas fa-exclamation-triangle text-6xl text-red-300 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-600 mb-2">Gagal Memuat Profil</h3>
+                            <p class="text-gray-500">Silakan coba lagi atau hubungi admin</p>
                         </div>
                     `;
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
+                document.getElementById('profileContent').innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-6xl text-red-300 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-gray-600 mb-2">Terjadi Kesalahan</h3>
+                        <p class="text-gray-500">Tidak dapat memuat profil. Periksa koneksi internet Anda.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function sharePost(postId, content, author) {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `Post dari ${author}`,
+                        text: content,
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                // Fallback: copy to clipboard
+                const shareText = `${content}\n\n- ${author}\n${window.location.href}`;
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast('Link berhasil disalin ke clipboard', 'success');
+                });
+            }
+        }
+
+        async function deletePost(postId) {
+            if (!confirm('Yakin ingin menghapus post ini?')) return;
+            
+            try {
+                const response = await fetch('?action=delete_post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ postId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    loadPosts(); // Refresh posts
+                } else {
+                    showToast(result.message, 'error');
+                }
+            } catch (error) {
+                showToast('Gagal menghapus post', 'error');
             }
         }
 
@@ -1328,7 +1453,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             
             setTimeout(() => {
                 toast.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(toast), 300);
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
             }, 3000);
         }
     </script>
