@@ -907,6 +907,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('currentUserName').textContent = currentUser.display_name;
             document.getElementById('userAvatar').src = currentUser.avatar;
+            
+            // Ensure we start on home page
+            showPage('home');
             loadPosts();
         }
 
@@ -942,8 +945,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
         async function loadPosts() {
             try {
+                console.log('Loading posts...');
                 const response = await fetch('?action=posts', { method: 'POST' });
                 const posts = await response.json();
+                console.log('Posts loaded:', posts);
                 displayPosts(posts);
             } catch (error) {
                 console.error('Error loading posts:', error);
@@ -1041,13 +1046,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 });
 
                 const result = await response.json();
+                console.log('Create post result:', result);
                 if (result.success) {
                     document.getElementById('postContent').value = '';
                     selectedImage = null;
                     selectedMusic = null;
                     document.getElementById('imagePreview').classList.add('hidden');
                     document.getElementById('musicPreview').classList.add('hidden');
+                    
+                    // Force reload posts immediately
+                    console.log('Reloading posts after create...');
                     loadPosts();
+                    
                     showToast(result.message, 'success');
                 } else {
                     showToast(result.message, 'error');
